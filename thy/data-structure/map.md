@@ -67,7 +67,7 @@ type bmap struct {
 
 `bmap` 就是我们常说的“桶”，桶里面会最多装 8 个 key，这些 key 之所以会落入同一个桶，是因为它们经过哈希计算后，哈希结果是“一类”的。在桶内，又会根据 key 计算出来的 hash 值的高 8 位来决定 key 到底落入桶内的哪个位置（一个桶内最多有8个位置）。
 
-![img](/Users/tianyou/Documents/Github/reading-notes/mygo/3_chapter/images3/map-1.png)
+![img](../../.go_study/assets/images3/map-1.png)
 
 
 
@@ -88,7 +88,7 @@ type mapextra struct {
 
 bmap 是存放 k-v 的地方，我们把视角拉近，仔细看 bmap 的内部组成。
 
-<img src="/Users/tianyou/Documents/Github/reading-notes/mygo/3_chapter/images3/map-2.png" alt="img" style="zoom:50%;" />
+<img src="../../.go_study/assets/images3/map-2.png" alt="img" style="zoom:50%;" />
 
 上图就是 bucket 的内存模型，`HOB Hash` 指的就是 top hash。 注意到 key 和 value 是各自放在一起的，并不是 `key/value/key/value/...` 这样的形式。源码里说明这样的好处是在某些情况下可以省略掉 padding 字段，节省内存空间。
 
@@ -136,7 +136,7 @@ buckets 编号就是桶编号，当两个不同的 key 落在同一个桶中，�
 
 这里参考曹大 github 博客里的一张图，原图是 ascii 图，geek 味十足，可以从参考资料找到曹大的博客，推荐大家去看看。
 
-<img src="/Users/tianyou/Documents/Github/reading-notes/mygo/3_chapter/images3/map-3.png" alt="img" style="zoom:50%;" />
+<img src="../../.go_study/assets/images3/map-3.png" alt="img" style="zoom:50%;" />
 
 上图中，假定 B = 5，所以 bucket 总数就是 2^5 = 32。首先计算出待查找 key 的哈希，使用低 5 位 `00110`，找到对应的 6 号 bucket，使用高 8 位 `10010111`，对应十进制 151，在 6 号 bucket 中寻找 tophash 值（HOB hash）为 151 的 key，找到了 2 号槽位，这样整个查找过程就结束了。
 
@@ -144,7 +144,7 @@ buckets 编号就是桶编号，当两个不同的 key 落在同一个桶中，�
 
 当定位到一个具体的 bucket 时，里层循环就是遍历这个 bucket 里所有的 cell，或者说所有的槽位，也就是 bucketCnt=8 个槽位。整个循环过程：
 
-![img](/Users/tianyou/Documents/Github/reading-notes/mygo/3_chapter/images3/map-4.png)
+![img](../../.go_study/assets/images3/map-4.png)
 
 再说一下 minTopHash，当一个 cell 的 tophash 值小于 minTopHash 时，标志这个 cell 的迁移状态。因为这个状态值是放在 tophash 数组里，为了和正常的哈希值区分开，会给 key 计算出来的哈希值一个增量：minTopHash。这样就能区分正常的 top hash 值和表示状态的哈希值。
 
