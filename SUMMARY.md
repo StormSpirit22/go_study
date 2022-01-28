@@ -3,6 +3,8 @@
 ## go 学习
 
 * [简介](README.md)
-* [码农桃花源博客](qcrao/README.md)
-  * [数组和切片](qcrao/3_chapter/slice. md)
-  * [map](qcrao/3_chapter/map. md)
+* [码农桃花源博客](thy/README.md)
+  * [数组和切片](thy/3_chapter/slice. md)
+  * [map](thy/3_chapter/map. md)
+  * [二叉树遍历](leetcode-shua-ti/er-cha-shu/er-cha-shu-bian-li.md)
+
