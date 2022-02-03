@@ -46,11 +46,11 @@ runtime.schedule() {
 
 我们都知道，Go runtime 会负责 goroutine 的生老病死，从创建到销毁，都一手包办。Runtime 会在程序启动的时候，创建 M 个线程（CPU 执行调度的单位），之后创建的 N 个 goroutine 都会依附在这 M 个线程上执行。这就是 M:N 模型：
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/thy/concurrency/images_6/go-6.1.3.png)
+![img](./images_6/go-6.1.3.png)
 
 在同一时刻，一个线程上只能跑一个 goroutine。当 goroutine 发生阻塞（例如上篇文章提到的向一个 channel 发送数据，被阻塞）时，runtime 会把当前 goroutine 调度走，让其他 goroutine 来执行。目的就是不让一个线程闲着，榨干 CPU 的每一滴油水。
 
-![image-20220129153324173](/Users/tianyou/Documents/Github/ty/go_study/thy/concurrency/images_6/go-6.1.4.png)
+![image-20220129153324173](./images_6/go-6.1.4.png)
 
 
 
@@ -124,6 +124,18 @@ type schedt struct {
 }
 ```
 
+Go scheduler 的核心思想是：
+
+1. reuse threads；
+2. 限制同时运行（不包含阻塞）的线程数为 N，N 等于 CPU 的核心数目；
+3. 线程私有的 runqueues，并且可以从其他线程 stealing goroutine 来运行，线程阻塞后，可以将 runqueues 传递给其他线程。
+
+为什么需要 P 这个组件，直接把 runqueues 放到 M 不行吗？
+
+当一个线程阻塞的时候，将和它绑定的 P 上的 goroutines 转移到其他线程。
+
+Go scheduler 会启动一个后台线程 sysmon，用来检测长时间（超过 10 ms）运行的 goroutine，将其调度到 global runqueues。这是一个全局的 runqueue，优先级比较低，以示惩罚。
+
 
 
 关于 MPG，以下内容来自[《Go语言原本》](https://golang.design/under-the-hood/zh-cn/part2runtime/ch06sched/mpg/)
@@ -187,7 +199,7 @@ type schedt struct {
 
 #### P 的初始化
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/thy/concurrency/images_6/go-6.2.3.png)
+![img](./images_6/go-6.2.3.png)
 
 
 
@@ -201,7 +213,7 @@ type schedt struct {
 
 #### G 的初始化
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/thy/concurrency/images_6/go-6.2.4.png)
+![img](./images_6/go-6.2.4.png)
 
 
 
@@ -226,6 +238,10 @@ type schedt struct {
 调度器的设计还是相当巧妙的。它通过引入一个 P，巧妙的减缓了全局锁的调用频率，进一步压榨了机器的性能。 Goroutine 本身也不是什么黑魔法，运行时只是将其作为一个需要运行的入口地址保存在了 G 中， 同时对调用的参数进行了一份拷贝。我们说 P 是处理器自身的抽象，但 P 只是一个纯粹的概念。相反，M 才是运行代码的真身。
 
 
+
+同时可参考
+
+[[典藏版] Golang 调度器 GMP 原理与调度全分析](https://learnku.com/articles/41728)
 
 
 
