@@ -19,7 +19,7 @@ Go scheduler 的职责就是将所有处于 runnable 的 goroutines 均匀分布
 
 Go scheduler 使用 M:N 模型，在任一时刻，M 个 goroutines（G） 要分配到 N 个内核线程（M），这些 M 跑在个数最多为 GOMAXPROCS 的逻辑处理器（P）上。每个 M 必须依附于一个 P，每个 P 在同一时刻只能运行一个 M。如果 P 上的 M 阻塞了，那它就需要其他的 M 来运行 P 的 LRQ 里的 goroutines。
 
-![img](./images_6/go-6.1.1.png)
+![img](../../.go_study/assets/concurrency_images/go-6.1.1.png)
 
 实际上，Go scheduler 每一轮调度要做的工作就是找到处于 runnable 的 goroutines，并执行它。找的顺序如下：
 
@@ -38,7 +38,7 @@ runtime.schedule() {
 
 当 P2 上的一个 G 执行结束，它就会去 LRQ 获取下一个 G 来执行。如果 LRQ 已经空了，就是说本地可运行队列已经没有 G 需要执行，并且这时 GRQ 也没有 G 了。这时，P2 会随机选择一个 P（称为 P1），P2 会从 P1 的 LRQ “偷”过来一半的 G。
 
-![img](./images_6/go-6.1.2.png)
+![img](../../.go_study/assets/concurrency_images/go-6.1.2.png)
 
 这样做的好处是，有更多的 P 可以一起工作，加速执行完所有的 G。
 
@@ -46,11 +46,11 @@ runtime.schedule() {
 
 我们都知道，Go runtime 会负责 goroutine 的生老病死，从创建到销毁，都一手包办。Runtime 会在程序启动的时候，创建 M 个线程（CPU 执行调度的单位），之后创建的 N 个 goroutine 都会依附在这 M 个线程上执行。这就是 M:N 模型：
 
-![img](./images_6/go-6.1.3.png)
+![img](../../.go_study/assets/concurrency_images/go-6.1.3.png)
 
 在同一时刻，一个线程上只能跑一个 goroutine。当 goroutine 发生阻塞（例如上篇文章提到的向一个 channel 发送数据，被阻塞）时，runtime 会把当前 goroutine 调度走，让其他 goroutine 来执行。目的就是不让一个线程闲着，榨干 CPU 的每一滴油水。
 
-![image-20220129153324173](./images_6/go-6.1.4.png)
+![image-20220129153324173](../../.go_study/assets/concurrency_images/go-6.1.4.png)
 
 
 
@@ -199,7 +199,7 @@ Go scheduler 会启动一个后台线程 sysmon，用来检测长时间（超过
 
 #### P 的初始化
 
-![img](./images_6/go-6.2.3.png)
+![img](../../.go_study/assets/concurrency_images/go-6.2.3.png)
 
 
 
@@ -213,7 +213,7 @@ Go scheduler 会启动一个后台线程 sysmon，用来检测长时间（超过
 
 #### G 的初始化
 
-![img](./images_6/go-6.2.4.png)
+![img](../../.go_study/assets/concurrency_images/go-6.2.4.png)
 
 
 

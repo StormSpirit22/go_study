@@ -54,7 +54,7 @@ type waitq struct {
 
 例如，创建一个容量为 6 的，元素为 int 型的 channel 数据结构如下 ：
 
-![image-20220201215313882](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-1.png)
+![image-20220201215313882](../../.go_study/assets/channel_images/channel-1.png)
 
 ### 创建
 
@@ -77,7 +77,7 @@ func makechan(t *chantype, size int64) *hchan
 
 新建一个 chan 后，内存在堆上分配，大概长这样：
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-2.png)
+![img](../../.go_study/assets/channel_images/channel-2.png)
 
 ## Channel 接收数据的过程
 
@@ -268,13 +268,13 @@ G2 received data:  3
 
 channel 结构：
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-3.png)
+![img](../../.go_study/assets/channel_images/channel-3.png)
 
 接着，第 15、16 行分别创建了一个 goroutine，各自执行了一个接收操作。通过前面的源码分析，我们知道，这两个 goroutine （后面称为 G1 和 G2 好了）都会被阻塞在接收操作。G1 和 G2 会挂在 channel 的 recq 队列中，形成一个双向循环链表。
 
 在程序的 17 行之前，chan 的整体数据结构如下：
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-4.png)
+![img](../../.go_study/assets/channel_images/channel-4.png)
 
 `buf` 指向一个长度为 0 的数组，qcount 为 0，表示 channel 中没有元素。重点关注 `recvq` 和 `sendq`，它们是 waitq 结构体，而 waitq 实际上就是一个双向链表，链表的元素是 sudog，里面包含 `g` 字段，`g` 表示一个 goroutine，所以 sudog 可以看成一个 goroutine。recvq 存储那些尝试读取 channel 但被阻塞的 goroutine，sendq 则存储那些尝试写入 channel，但被阻塞的 goroutine。
 
@@ -282,19 +282,19 @@ channel 结构：
 
 `recvq` 的数据结构如下：
 
-<img src="/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-5.png" alt="img" style="zoom:67%;" />
+<img src="../../.go_study/assets/channel_images/channel-5.png" alt="img" style="zoom:67%;" />
 
 再从整体上来看一下 chan 此时的状态：
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-6.png)
+![img](../../.go_study/assets/channel_images/channel-6.png)
 
 G1 和 G2 被挂起了，状态是 `WAITING`。假设我们只有一个 M，当 G1（`go goroutineA(ch)`） 运行到 `val := <- a` 时，它由本来的 running 状态变成了 waiting 状态（调用了 gopark 之后的结果）：
 
-<img src="/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-7.png" alt="img" style="zoom:50%;" />
+<img src="../../.go_study/assets/channel_images/channel-7.png" alt="img" style="zoom:50%;" />
 
 G1 脱离与 M 的关系，但调度器可不会让 M 闲着，所以会接着调度另一个 goroutine 来运行：
 
-<img src="/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-8.png" alt="img" style="zoom:50%;" />
+<img src="../../.go_study/assets/channel_images/channel-8.png" alt="img" style="zoom:50%;" />
 
 现在 G1 和 G2 都被挂起了，等待着一个 sender 往 channel 里发送数据，才能得到解救。
 
@@ -330,14 +330,14 @@ func sendDirect(t *_type, sg *sudog, src unsafe.Pointer) {
 
 然后，sender 把发送元素拷贝到 sudog 的 elem 地址处，最后会调用 goready 将 G1 唤醒，状态变为 runnable。
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-9.png)
+![img](../../.go_study/assets/channel_images/channel-9.png)
 
 
 当调度器光顾 G1 时，将 G1 变成 running 状态，执行 goroutineA 接下来的代码。G 表示其他可能有的 goroutine。
 
 这里其实涉及到一个协程写另一个协程栈的操作。有两个 receiver 在 channel 的一边虎视眈眈地等着，这时 channel 另一边来了一个 sender 准备向 channel 发送数据，为了高效，用不着通过 channel 的 buf “中转”一次，直接从源地址把数据 copy 到目的地址就可以了，效率高啊！
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-10.png)
+![img](../../.go_study/assets/channel_images/channel-10.png)
 
 上图是一个示意图，`3` 会被拷贝到 G1 栈上的某个位置，也就是 val 的地址处，保存在 elem 字段。
 
@@ -700,7 +700,7 @@ printUser goRoutine called &{Ankur 25}
 
 这里就是一个很好的 `share memory by communicating` 的例子。
 
-![img](/Users/tianyou/Documents/Github/go_study/thy/channel/channel_images/channel-11.png)
+![img](../../.go_study/assets/channel_images/channel-11.png)
 
 一开始构造一个结构体 u，地址是 0x56420，图中地址上方就是它的内容。接着把 `&u` 赋值给指针 `g`，g 的地址是 0x565bb0，它的内容就是一个地址，指向 u。
 
