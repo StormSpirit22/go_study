@@ -211,7 +211,7 @@ func main() {
 
 增加一个 context，在 break 前调用 cancel 函数，取消 goroutine。gen 函数在接收到取消信号后，直接退出，系统回收资源。
 
-## context 如何被取消
+### Context 如何被取消
 
 ![image-20220207105139307](../../.go_study/assets/standard/standard-2.png)
 
@@ -251,7 +251,7 @@ type Context interface {
 
 `Value()` 获取之前设置的 key 对应的 value。
 
-### Canceler
+#### Canceler
 
 ```go
 type canceler interface {
@@ -330,7 +330,7 @@ todo
 
 todo
 
-### context.Value 的查找过程是怎样的
+### Context.Value 的查找过程是怎样的
 
 ```go
 type valueCtx struct {
