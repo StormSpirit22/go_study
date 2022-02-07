@@ -35,6 +35,8 @@ type hchan struct {
 }
 ```
 
+<img src="/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/channel_images/channel-12.png" alt="img" style="zoom: 33%;" />
+
 `buf` 指向底层循环数组，只有缓冲型的 channel 才有。
 
 `sendx`，`recvx` 均指向底层循环数组，表示当前可以发送和接收的元素位置索引值（相对于底层数组）。

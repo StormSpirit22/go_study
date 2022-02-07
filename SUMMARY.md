@@ -7,5 +7,6 @@
   * [数组和切片](thy/data-structure/slice.md)
   * [集合](thy/data-structure/map.md)
   * [通道](thy/channel/channel.md)
+  * [标准库](thy/standard/standard.md)
   * [并发](thy/concurrency/concurrency.md)
 
