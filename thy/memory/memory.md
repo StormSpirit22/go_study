@@ -13,14 +13,14 @@ Go是一个支持goroutine这种多线程的语言，所以它的内存管理系
 - MCentral: 对于给定尺寸类别的共享的free list
 - MCache: 用于小对象的每M一个的cache
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-1.png)
+![img](../../.go_study/assets/memory/mem-1.png)
 
 > 按照其用途，span 面向内部管理，object 面向对象分配。
 >
 
 ## arenas
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-2.png)
+![img](../../.go_study/assets/memory/mem-2.png)
 
 在旧的Go版本中，Go程序是采用预先保留连续的虚拟地址的方案，在64位的系统上，会预先保留512G的虚拟内存空间，但是不可增长，而当前版本中，虚拟内存的地址长度被设置为了48位，理论上可以支持2^48字节的内存使用。
 
@@ -36,15 +36,15 @@ spans 数组是一个用于将内存地址映射成 MSpan 结构体的表，每�
 
 回收过程: 回收一个 MSpan 时，首先会查找它相邻的页的址址，再通过 spans 映射得到该页对应的 MSpan，如果 MSpan 的 state 是未使用，则可以将两者进行合并。最后会将这页或者合并后的页归还到 free[] 分配池或者是 large 中。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-3.png)
+![img](../../.go_study/assets/memory/mem-3.png)
 
 #### bitmap
 
 bitmap区域标识arena区域哪些地址保存了对象，并且用4bit标志位表示对象是否包含指针、GC标记信息。bitmap中一个byte大小的内存对应arena区域中4个指针大小（指针大小为 8B ）的内存，所以bitmap区域的大小是512GB/(4*8B)=16GB。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-4.png)
+![img](../../.go_study/assets/memory/mem-4.png)
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-5.png)
+![img](../../.go_study/assets/memory/mem-5.png)
 
 从上图其实还可以看到bitmap的高地址部分指向arena区域的低地址部分，也就是说bitmap的地址是由高地址向低地址增长的。
 
@@ -65,7 +65,7 @@ Size_Class = Span_Class / 2
 
 这是因为其实每个 Size Class有两个mspan，也就是有两个Span Class。其中一个分配给含有指针的对象，另一个分配给不含有指针的对象。这会给垃圾回收机制带来利好。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-6.png)
+![img](../../.go_study/assets/memory/mem-6.png)
 
 Go1.9.2里 mspan 的Size Class共有67种，每种mspan分割的object大小是 8*2 的倍数，这个是写死在代码里的：
 
@@ -134,7 +134,7 @@ type mspan struct {
 
 当span内的所有内存块都被占用时，没有剩余空间继续分配对象，mcache会向mcentral申请1个span，mcache拿到span后继续分配对象。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-7.png)
+![img](../../.go_study/assets/memory/mem-7.png)
 
 假设最左边第一个mspan的Size Class等于10，根据前面的class_to_size数组，得出这个msapn分割的object大小是144B，算出可分配的对象个数是8KB/144B=56.89个，取整56个，所以会有一些内存浪费掉了，Go的源码里有所有Size Class的mspan浪费的内存的大小；再根据class_to_allocnpages数组，得到这个mspan只由1个page组成；假设这个mspan是分配给无指针对象的，那么spanClass等于20。
 
@@ -226,7 +226,7 @@ mheap中含有所有规格的mcentral，所以，当一个mcache从mcentral申�
 
 分配过程: 如果能从free[]的分配池中分配，则从其中分配。如果发生切割则将剩余部分放回free[]中。比如要分配2页大小的 空间，从图上2号槽位开始寻找，直到4号槽位有可用的MSpan，则拿一个出来，切出两页，剩余的部分再放回2号槽位中。 否则从large链表中去分配，按BestFit算法去找一块可用空间。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-8.png)
+![img](../../.go_study/assets/memory/mem-8.png)
 
 ### treap 结构
 
@@ -697,11 +697,11 @@ func (pp *p) init(id int32) {
 
 如果放置当前对象之后，已经大于 16k，那么就要从 cache 的 mspan 中拿出下一个 16k 的对象，当然如果当前 mspan 的空闲内存不足了，cache 会通过 nextFreeFast 函数从 mcentral 中获取 mspan。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-9.png)
+![img](../../.go_study/assets/memory/mem-9.png)
 
 如果没有足够空间，则申请新的，若必要修正tiny及tinyoffset的值
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/memory/mem-10.png)
+![img](../../.go_study/assets/memory/mem-10.png)
 
 ```
 // new(type) 会被翻译为 newobject，但是也不一定，要看逃逸分析的结果

@@ -112,7 +112,7 @@ func main() {
 - 灰色对象（波面）：已被回收器访问到的对象，但回收器需要对其中的一个或多个指针进行扫描，因为他们可能还指向白色对象。
 - 黑色对象（确定存活）：已被回收器访问到的对象，其中所有字段都已被扫描，黑色对象中任何一个指针都不可能直接指向白色对象。
 
-<img src="/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-1.png" alt="img" style="zoom: 50%;" />
+<img src="../../.go_study/assets/gc/gc-1.png" alt="img" style="zoom: 50%;" />
 
 
 
@@ -130,7 +130,7 @@ func main() {
 
 我们不妨考虑赋值器的写操作，假设某个灰色对象 A 指向白色对象 B， 而此时赋值器并发的将黑色对象 C 指向（ref3）了白色对象 B， 并将灰色对象 A 对白色对象 B 的引用移除（ref2），则在继续扫描的过程中， 白色对象 B 永远不会被标记为黑色对象了（回收器不会重新扫描黑色对象）。 进而产生被错误回收的对象 B，如图 1 所示。
 
-<img src="/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-2.png" alt="img" style="zoom: 25%;" />
+<img src="../../.go_study/assets/gc/gc-2.png" alt="img" style="zoom: 25%;" />
 
 ### 弱三色不变性
 
@@ -199,7 +199,7 @@ func DijkstraWritePointer(slot *unsafe.Pointer, ptr unsafe.Pointer) {
 
 图 2 展示了三个对象之间，赋值器和回收器的对 ABC 对象图的操作，赋值器修改 ABC 之间的引用关系，而回收器根据引用关系进一步修改 ABC 各自的颜色。
 
-<img src="/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-3.png" alt="img" style="zoom:20%;" />
+<img src="../../.go_study/assets/gc/gc-3.png" alt="img" style="zoom:20%;" />
 
 Dijkstra 屏障的优势在于：
 
@@ -233,7 +233,7 @@ func YuasaWritePointer(slot *unsafe.Pointer, ptr unsafe.Pointer) {
 
 Yuasa 删除屏障的优势则在于不需要标记结束阶段的重新扫描， 结束时候能够准确的回收所有需要回收的白色对象。 缺陷是 Yuasa 删除屏障会拦截写操作，进而导致波面的退后，产生冗余的扫描，
 
-<img src="/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-4.png" alt="img" style="zoom:25%;" />
+<img src="../../.go_study/assets/gc/gc-4.png" alt="img" style="zoom:25%;" />
 
 （ 上图右边应该是 YuasaWritePointer(C.ref3, B) ）
 
@@ -331,7 +331,7 @@ func main() {
 
 会看到程序中生成了 `trace.out` 文件，我们可以使用 `go tool trace trace.out` 命令得到下图：
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-5.png)
+![img](../../.go_study/assets/gc/gc-5.png)
 
 可以看到，途中的 Heap 在持续增长，没有内存被回收，产生了内存泄漏的现象。
 
@@ -339,11 +339,11 @@ func main() {
 
 当前版本的 Go 以 STW 为界限，可以将 GC 划分为五个阶段：
 
-![image-20220208110344666](/Users/tianyou/Library/Application Support/typora-user-images/image-20220208110344666.png)
+![image-20220208110344666](../../.go_study/assets/gc/gc-8.png)
 
 具体而言，各个阶段的触发函数分别为：
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-6.png)
+![img](../../.go_study/assets/gc/gc-6.png)
 
 ###  触发 GC 的时机是什么？
 
@@ -356,7 +356,7 @@ Go 语言中对 GC 的触发时机存在两种形式：
 
 通过 `GOGC` 或者 `debug.SetGCPercent` 进行控制（他们控制的是同一个变量，即堆的增长率 $\rho$）。整个算法的设计考虑的是优化问题：如果设上一次 GC 完成时，内存的数量为 $H_m$（heap marked），估计需要触发 GC 时的堆大小 $H_T$（heap trigger），使得完成 GC 时候的目标堆大小 $H_g$（heap goal） 与实际完成时候的堆大小 $H_a$（heap actual）最为接近，即： $\min |H_g - H_a| = \min|(1+\rho)H_m - H_a|$。
 
-![img](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/gc/gc-7.png)
+![img](../../.go_study/assets/gc/gc-7.png)
 
 除此之外，步调算法还需要考虑 CPU 利用率的问题，显然我们不应该让垃圾回收器占用过多的 CPU，即不应该让每个负责执行用户 goroutine 的线程都在执行标记过程。理想情况下，在用户代码满载的时候，GC 的 CPU 使用率不应该超过 25%，即另一个优化问题：如果设 $u_g$为目标 CPU 使用率（goal utilization），而 $u_a$为实际 CPU 使用率（actual utilization），则 $\min|u_g - u_a|$。
 
