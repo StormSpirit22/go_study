@@ -1,3 +1,5 @@
+
+
 # Table of contents
 
 ## go 学习
@@ -9,4 +11,6 @@
   * [通道](thy/channel/channel.md)
   * [标准库](thy/standard/standard.md)
   * [并发](thy/concurrency/concurrency.md)
+  * [内存](thy/memory/memory.md)
+  * [GC](thy/gc/gc.md)
 
