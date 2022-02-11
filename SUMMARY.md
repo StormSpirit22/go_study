@@ -4,13 +4,13 @@
 
 ## go 学习
 
-* [简介](README.md)
-* [码农桃花源博客](thy/README.md)
-  * [数组和切片](thy/data-structure/slice.md)
-  * [集合](thy/data-structure/map.md)
-  * [通道](thy/channel/channel.md)
-  * [标准库](thy/standard/standard.md)
-  * [并发](thy/concurrency/concurrency.md)
-  * [内存](thy/memory/memory.md)
-  * [GC](thy/gc/gc.md)
+- [简介](README.md)
+- [数组和切片](thy/data-structure/slice.md)
+- [集合](thy/data-structure/map.md)
+- [通道](thy/channel/channel.md)
+- [标准库](thy/standard/standard.md)
+- [并发](thy/concurrency/concurrency.md)
+- [内存](thy/memory/memory.md)
+- [GC](thy/gc/gc.md)
+- [其他](thy/others/others.md)
 
