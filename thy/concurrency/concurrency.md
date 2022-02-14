@@ -251,18 +251,24 @@ Go scheduler 会启动一个后台线程 sysmon，用来检测长时间（超过
 
 参考：
 
+https://groups.google.com/g/golang-nuts/c/dISOUpCp-uE
+
 256 run queue size is designed for the work-steal scheduler to prevent false sharing.
 
 128 run queue size exactly fits one cache line. Since the run queue can be stolen half of the run queue from the tail by other Ps, 256 run queue size prevents false sharing when the work-steal happens on different cores.
 
+意思大概是：
+
+256 运行队列大小是为工作窃取调度程序设计的，以防止伪共享。
+
+128 运行队列大小正好适合一个缓存行。 由于运行队列可以被其他 P从尾部窃取一半的运行队列，因此 256 运行队列大小可以防止在不同内核上发生工作窃取时的伪共享。
 
 
-作为缓存，本地g队列因为无锁所以应该是越大越好，比方说1<<10或者直接1<<16，这样g多的p关联到的m效率超高。
 
-但是也有问题，本地g队列大了那么存g数量多了，全局g队列里面的g就少了甚至没有，运气不好的p所关联到的m只能去偷，但是偷的效率不高。
+伪共享可参考：
 
-这样结局就是多核cpu中有几个核在那空转，这个违背了公平调度的原则。
+[伪共享（false sharing），并发编程无声的性能杀手](https://www.cnblogs.com/cyfonly/p/5800758.html)
 
-我们平时把多余的钱存银行或者基金，身上只保留有限的钞票，没钱的人可以去银行或者基金借而不是去偷我的钱，其实我也没钱。如果没有银行那么当我们钱花光了只能自旋等死，为了生存我们只能组队夜里潜入马云家里，谁叫他富的流油。
+伪共享的非标准定义为：**缓存系统中是以缓存行（cache line）为单位存储的，当多线程修改互相独立的变量时，如果这些变量共享同一个缓存行，就会无意中影响彼此的性能，这就是伪共享。**（引用自上文）
 
-也可以小一点，比如128、64或更小，这个golang团队会在公平和效率直接做个妥协然后脑门一拍得出个经验值，那行那就256吧。
+大概可以这么理解：因为常见的高速缓存行大小为 32、64 和 128 字节。运行队列如果是 256，那么不能被一个缓存行存储，这样工作窃取时其他的线程就不会修改同一个缓存行的数据，即不会造成伪共享。另外也是 go 团队做了性能测试，256 的性能最好。（不知道这个解释对不对）
