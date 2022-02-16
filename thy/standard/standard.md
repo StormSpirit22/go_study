@@ -403,6 +403,12 @@ func (c *valueCtx) Value(key interface{}) interface{} {
 
 ## defer
 
+defer 细节推荐：
+
+[Golang 最细节篇 — 解密 defer 原理，究竟背着程序猿做了多少事情？](https://www.modb.pro/db/88823)
+
+
+
 以下内容来自 [《Go 语言原本》](https://golang.design/under-the-hood/zh-cn/part1basic/ch03lang/defer/#341-defer-)。
 
 defer 的语义表明，它会在函数返回、产生恐慌或者 `runtime.Goexit` 时被调用。直觉上看， defer 应该由编译器直接将需要的函数调用插入到该调用的地方，似乎是一个编译期特性， 不应该存在运行时性能问题，非常类似于 C++ 的 RAII 范式（当离开资源的作用域时， 自动执行析构函数）。 但实际情况是，由于 defer 并没有与其依赖资源挂钩，也允许在条件、循环语句中出现， 从而不再是一个作用域相关的概念，这就是使得 defer 的语义变得相对复杂。 在一些复杂情况下，无法在编译期决定存在多少个 defer 调用。
