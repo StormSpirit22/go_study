@@ -405,7 +405,69 @@ func (c *valueCtx) Value(key interface{}) interface{} {
 
 defer 细节推荐：
 
-[Golang 最细节篇 — 解密 defer 原理，究竟背着程序猿做了多少事情？](https://www.modb.pro/db/88823)
+[Golang 最细节篇 — 解密 defer 原理，究竟背着程序猿做了多少事情？](https://mp.weixin.qq.com/s/ZgTCSj-PZMTiMCR4FtBeyA)
+
+
+
+### 预计算
+
+**struct _defer 数据结构**
+
+```go
+type _defer struct {
+ siz     int32 // 参数和返回值的内存大小
+ started bool
+ heap    bool    // 区分该结构是在栈上分配的，还是对上分配的
+ sp        uintptr  // sp 计数器值，栈指针；
+ pc        uintptr  // pc 计数器值，程序计数器；
+ fn        *funcval // defer 传入的函数地址，也就是延后执行的函数;
+ _panic    *_panic  // panic that is running defer
+ link      *_defer   // 链表
+}
+```
+
+每一次的 defer 调用都会对应到一个 `_defer` 结构体，一个函数内可以有多个 defer 调用，所以自然需要一个数据结构来组织这些 `_defer` 结构体。`_defer` 按照对齐规则占用 48 字节的内存。在 `_defer` 结构体中的 `link` 字段，这个字段把所有的 `_defer` 串成一个链表，表头是挂在 Goroutine 的 `_defer` 字段。效果如下：
+
+![图片](https://mmbiz.qpic.cn/mmbiz_png/VICDXkv9ChPicx3ziciagpEexdChUpTkNeFykpSYLdsLyb6A9rtpIJvkevCeImsb6pPM7JiblTd7ctsS27WDAayBoQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+还有一个重点，`_defer` 结构只是一个 header ，结构紧跟的是延迟函数的参数和返回值的空间，大小由 `_defer.siz` 指定。这块内存的值在 defer 关键字执行的时候填充好。这里引出一个下面重点的概念：**延迟函数的参数是预计算的。**
+
+![图片](https://mmbiz.qpic.cn/mmbiz_png/VICDXkv9ChPicx3ziciagpEexdChUpTkNeFgXIDxR46CZwoHvfJ8TaAVOYibBbpxnpRiaws137QuL6yf4ftolBPPUKQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+
+
+`_defer` 作为一个 header，延迟回调函数（ `defered` ）的参数和返回值紧接着 `_defer` 放置，而这个参数值是在 defer 执行的时候就设置好了，也就是预计算参数，而非等到执行 defered 函数的时候才去获取。
+
+举个例子，执行 `defer func(x, y)` 的时候，x，y 这两个实参是计算的出来的，Go 中的函数调用都是值传递。那么就会把 x，y 的值拷贝到 `_defer` 结构体之后。看个例子：
+
+```go
+package main
+
+func doDeferFunc(x int) {
+	println("defer x: ", x)
+}
+
+func doSomething() int {
+	var x = 1
+	defer doDeferFunc(x)
+	x += 2
+	return x
+}
+
+func main() {
+	x := doSomething()
+	println("x: ", x)
+}
+```
+
+输出：
+
+```shell
+defer x:  1
+x:  3
+```
+
+`defer` 执行的函数是 `println` ，`println` 参数是 x ，x 的值传进去的值则是在 `defer` 语句执行的时候就确认了的。
 
 
 
@@ -568,3 +630,86 @@ if deferBits && 1 << 0 != 0 {
    - 编译器首先会将延迟语句翻译为一个 `deferproc` 调用，进而从运行时分配一个用于记录被延迟调用的 `_defer` 记录，并将被延迟的调用的入口地址及其参数复制保存，入栈到 Goroutine 对应的延迟调用链表中；
    - 在函数末尾处，通过编译器的配合，在调用被 defer 的函数前，调用 `deferreturn`，从而将 `_defer` 实例归还到资源池，而后通过模拟尾递归的方式来对需要 defer 的函数进行调用。
    - 此类 defer 的主要性能问题存在于每个 defer 语句产生记录时的内存分配，记录参数和完成调用时的参数移动时的系统调用，运行时性能最差。
+
+
+
+### 问题
+
+#### 一个函数多个 defer 语句的时候，会发生什么？
+
+`_defer` 是一个链表，表头是 `goroutine._defer` 结构。一个协程的函数注册的是挂同一个链表，执行的时候按照 rsp 来区分函数。并且，这个链表是把新元素插在表头，而执行的时候是从前往后执行，所以这里导致了一个 LIFO 的特性，也就是先注册的 defered 函数后执行。
+
+![图片](https://mmbiz.qpic.cn/mmbiz_png/VICDXkv9ChPicx3ziciagpEexdChUpTkNeFqqZHQpDmMwrmN50xjKZQibDXyyicur2WQEqiczIysXdpJuDYa71p1jjYA/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+
+#### **return 之后是先返回值还是先执行 defer 函数？**
+
+Golang 官方文档是有明确说明的：
+
+> That is, if the surrounding function returns through an explicit return statement, deferred functions are executed **after any result parameters are set by that return statement** but **before the function returns to its caller**.
+
+也就是说，defer 的函数链调用是在设置了 result parameters 之后，但是在运行指令上下文返回到 caller 函数之前。
+
+所以有 defer 注册的函数，执行 `return` 语句之后，对应执行三个操作序列：
+
+```
+1. 设置返回值
+2. 执行 defered 链表
+3. ret 指令跳转到 caller 函数
+```
+
+那么，根据这个原理我们来解析如下的行为：
+
+```go
+func f1 () (r int) {
+ t := 1
+ defer func() {
+  t = t +5
+ }()
+ return t
+}
+
+func f2() (r int) {
+ defer func(r int) {
+  r = r + 5
+ }(r)
+ return 1
+}
+
+func f3() (r int) {
+ defer func () {
+  r = r + 5
+ } ()
+ return 1
+}
+```
+
+这三个函数的返回值分别是多少？
+
+答案：f1() -> 1，f2() -> 1，f3() -> 6 。
+
+我逐个解释下：
+
+**函数 f1 执行 `return t` 语句之后：**
+
+1. 设置返回值 `r = t`，这个时候局部变量 t 的值等于 1，所以 r = 1；
+2. 执行 defered 函数，`t = t+5` ，之后局部变量 t 的值为 6；
+3. 执行汇编 `ret` 指令，跳转到 caller 函数；
+
+所以，`f1()` 的返回值是 1 ；
+
+**函数 f2 执行 `return 1` 语句之后：**
+
+1. 设置返回值 `r = 1` ；
+2. 执行 defered 函数，defered 函数传入的参数是 r，r 在预计算参数的时候值为 0，Go 传参为值拷贝，赋值给了匿名函数的参数变量，所以 ，`r = r+5` ，匿名函数的参数变量 r 的值为 5；
+3. 执行汇编 `ret` 指令，跳转到 caller 函数；
+
+所以，`f2()` 的返回值还是 1 ；
+
+**函数 f3 执行 `return 1` 语句之后：**
+
+1. 设置返回值 `r = 1`；
+2. 执行 defered 函数，`r= r+5` ，之后返回值变量 r 的值为 6（这是个闭包函数，注意和 f2 区分）；
+3. 执行汇编 `ret` 指令，跳转到 caller 函数；
+
+所以，`f1()` 的返回值是 6 ；
+
