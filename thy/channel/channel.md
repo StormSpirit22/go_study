@@ -35,7 +35,7 @@ type hchan struct {
 }
 ```
 
-<img src="/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/channel_images/channel-12.png" alt="img" style="zoom: 33%;" />
+<img src="../../.go_study/assets/channel_images/channel-12.png" alt="img" style="zoom: 33%;" />
 
 `buf` 指向底层循环数组，只有缓冲型的 channel 才有。
 
@@ -266,8 +266,6 @@ func main() {
 G2 received data:  3
 ```
 
-多加几个 goroutine 会发生可能是头节点先接收或尾结点先接受到的情况。
-
 channel 结构：
 
 ![img](../../.go_study/assets/channel_images/channel-3.png)
@@ -345,7 +343,7 @@ func sendDirect(t *_type, sg *sudog, src unsafe.Pointer) {
 
 ## 关闭 Channel
 
-关闭某个 channel，会执行函数 `closechan`。close 逻辑比较简单，对于一个 channel，recvq 和 sendq 中分别保存了阻塞的发送者和接收者。关闭 channel 后，对于等待接收者而言，会收到一个相应类型的零值。对于等待发送者，会直接 panic。所以，在不了解 channel 还有没有接收者的情况下，不能贸然关闭 channel。
+关闭某个 channel，会执行函数 `closechan`。close 逻辑比较简单，对于一个 channel，recvq 和 sendq 中分别保存了阻塞的发送者和接收者。关闭 channel 后，对于等待接收者而言，会收到一个相应类型的零值。对于等待发送者，会直接 panic。所以，在不了解 channel 还有没有发送者的情况下，不能贸然关闭 channel。
 
 close 函数先上一把大锁，接着把所有挂在这个 channel 上的 sender 和 receiver 全都连成一个 sudog 链表，再解锁。最后，再将所有的 sudog 全都唤醒。唤醒之后，该干嘛干嘛。
 
@@ -655,7 +653,7 @@ Channel 发送和接收元素的本质是什么？
 
 > All transfer of value on the go channels happens with the copy of value.
 
-就是说 channel 的发送和接收操作本质上都是 “值的拷贝”，无论是从 sender goroutine 的栈到 chan buf，还是从 chan buf 到 receiver goroutine，或者是直接从 sender goroutine 到 receiver goroutine。
+**就是说 channel 的发送和接收操作本质上都是 “值的拷贝”，无论是从 sender goroutine 的栈到 chan buf，还是从 chan buf 到 receiver goroutine，或者是直接从 sender goroutine 到 receiver goroutine**。
 
 举一个例子：
 
