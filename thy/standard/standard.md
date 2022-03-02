@@ -428,11 +428,11 @@ type _defer struct {
 
 每一次的 defer 调用都会对应到一个 `_defer` 结构体，一个函数内可以有多个 defer 调用，所以自然需要一个数据结构来组织这些 `_defer` 结构体。`_defer` 按照对齐规则占用 48 字节的内存。在 `_defer` 结构体中的 `link` 字段，这个字段把所有的 `_defer` 串成一个链表，表头是挂在 Goroutine 的 `_defer` 字段。效果如下：
 
-![图片](https://mmbiz.qpic.cn/mmbiz_png/VICDXkv9ChPicx3ziciagpEexdChUpTkNeFykpSYLdsLyb6A9rtpIJvkevCeImsb6pPM7JiblTd7ctsS27WDAayBoQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![图片](../../.go_study/assets/standard/standard-8.png)
 
 还有一个重点，`_defer` 结构只是一个 header ，结构紧跟的是延迟函数的参数和返回值的空间，大小由 `_defer.siz` 指定。这块内存的值在 defer 关键字执行的时候填充好。这里引出一个下面重点的概念：**延迟函数的参数是预计算的。**
 
-![图片](https://mmbiz.qpic.cn/mmbiz_png/VICDXkv9ChPicx3ziciagpEexdChUpTkNeFgXIDxR46CZwoHvfJ8TaAVOYibBbpxnpRiaws137QuL6yf4ftolBPPUKQ/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![图片](../../.go_study/assets/standard/standard-9.png)
 
 
 
@@ -639,7 +639,7 @@ if deferBits && 1 << 0 != 0 {
 
 `_defer` 是一个链表，表头是 `goroutine._defer` 结构。一个协程的函数注册的是挂同一个链表，执行的时候按照 rsp 来区分函数。并且，这个链表是把新元素插在表头，而执行的时候是从前往后执行，所以这里导致了一个 LIFO 的特性，也就是先注册的 defered 函数后执行。
 
-![图片](https://mmbiz.qpic.cn/mmbiz_png/VICDXkv9ChPicx3ziciagpEexdChUpTkNeFqqZHQpDmMwrmN50xjKZQibDXyyicur2WQEqiczIysXdpJuDYa71p1jjYA/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1)
+![图片](../../.go_study/assets/standard/standard-10.png)
 
 #### **return 之后是先返回值还是先执行 defer 函数？**
 
@@ -700,7 +700,7 @@ func f3() (r int) {
 **函数 f2 执行 `return 1` 语句之后：**
 
 1. 设置返回值 `r = 1` ；
-2. 执行 defered 函数，defered 函数传入的参数是 r，r 在预计算参数的时候值为 0，Go 传参为值拷贝，赋值给了匿名函数的参数变量，所以 ，`r = r+5` ，匿名函数的参数变量 r 的值为 5；
+2. 执行 defered 函数，defered 函数传入的参数是 r，r 在预计算参数的时候值为 0，Go 传参为值赋值给了匿名函数的参数变量，所以 ，`r = r+5` ，匿名函数的参数变量 r 的值为 5；
 3. 执行汇编 `ret` 指令，跳转到 caller 函数；
 
 所以，`f2()` 的返回值还是 1 ；
