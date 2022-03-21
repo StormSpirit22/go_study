@@ -343,7 +343,7 @@ func sendDirect(t *_type, sg *sudog, src unsafe.Pointer) {
 
 ## 关闭 Channel
 
-关闭某个 channel，会执行函数 `closechan`。close 逻辑比较简单，对于一个 channel，recvq 和 sendq 中分别保存了阻塞的发送者和接收者。关闭 channel 后，对于等待接收者而言，会收到一个相应类型的零值。对于等待发送者，会直接 panic。所以，在不了解 channel 还有没有发送者的情况下，不能贸然关闭 channel。
+关闭某个 channel，会执行函数 `closechan`。close 逻辑比较简单，对于一个 channel，recvq 和 sendq 中分别保存了阻塞的发送者和接收者。**关闭 channel 后，对于所有等待接收者而言，会收到一个相应类型的零值。对于等待发送者，会直接 panic**。所以，在不了解 channel 还有没有发送者的情况下，不能贸然关闭 channel。
 
 close 函数先上一把大锁，接着把所有挂在这个 channel 上的 sender 和 receiver 全都连成一个 sudog 链表，再解锁。最后，再将所有的 sudog 全都唤醒。唤醒之后，该干嘛干嘛。
 
@@ -566,7 +566,7 @@ func main() {
     // moderator
     go func() {
         stoppedBy = <-toStop
-        close(stopCh)
+        close(stopCh) 	// 这里 close 了 stopCh，所有协程的 case <- stopCh: 都会收到一个相应类型的零值，然后 return。如果是向 stopCh 发送一条消息，那么只有一个协程能接收到这个消息，进入 case <- stopCh: 然后 return。所以直接关闭通道即可。
     }()
 
     // senders
@@ -622,7 +622,7 @@ func main() {
 
 代码里 toStop 就是中间人的角色，使用它来接收 senders 和 receivers 发送过来的关闭 dataCh 请求。
 
-这里将 toStop 声明成了一个 缓冲型的 channel。假设 toStop 声明的是一个非缓冲型的 channel，那么第一个发送的关闭 dataCh 请求可能会丢失。因为无论是 sender 还是 receiver 都是通过 select 语句来发送请求，如果中间人所在的 goroutine 没有准备好，那 select 语句就不会选中，直接走 default 选项，什么也不做。这样，第一个关闭 dataCh 的请求就会丢失。
+这里将 toStop 声明成了一个 缓冲型的 channel。假设 toStop 声明的是一个非缓冲型的 channel，那么第一个发送的关闭 dataCh 请求可能会丢失。因为无论是 sender 还是 receiver 都是通过 select 语句来发送请求，如果中间人所在的 goroutine 没有准备好，那 select 语句就不会选中（接受者还没准备好，`case toStop <- "receiver#" + id:` 就会阻塞） ，直接走 default 选项，什么也不做。这样，第一个关闭 dataCh 的请求就会丢失。
 
 如果，我们把 toStop 的容量声明成 Num(senders) + Num(receivers)，那发送 dataCh 请求的部分可以改成更简洁的形式：
 
