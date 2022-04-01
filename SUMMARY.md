@@ -2,6 +2,8 @@
 
 # Table of contents
 
+- [简介](README.md)
+
 ## go 学习
 
 - [Go 底层原理](thy/README.md)
