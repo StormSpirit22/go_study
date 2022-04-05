@@ -42,7 +42,7 @@
 
 ### 优雅启动
 
-[![01_Go进阶训练营_微服务_v1.svg](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/go_advanced/ms-4.svg)](https://img.lailin.xyz/image/1606735520428-1f37cd30-225e-4b2c-a104-7ba3bbfe17c2.svg)
+[![](../../.go_study/assets/go_advanced/ms-4.svg)
 
 
 
@@ -56,7 +56,7 @@
 
 ### 优雅中止
 
-[![01_Go进阶训练营_微服务_v1.drawio.svg](https://img.lailin.xyz/image/1606742744880-38b16366-6370-408b-8619-7a67d56c0c49.svg)](https://img.lailin.xyz/image/1606742744880-38b16366-6370-408b-8619-7a67d56c0c49.svg)
+![](../../.go_study/assets/go_advanced/ms-5.svg)
 
 
 
@@ -183,9 +183,7 @@ func main() {
 
 ## 服务发现
 
-[![image.png](https://img.lailin.xyz/image/1606744144537-0fe881ca-5716-4b80-8800-0dee0a266c5f.png)](https://img.lailin.xyz/image/1606744144537-0fe881ca-5716-4b80-8800-0dee0a266c5f.png)
-
-[image.png](https://img.lailin.xyz/image/1606744144537-0fe881ca-5716-4b80-8800-0dee0a266c5f.png)
+![](../../.go_study/assets/go_advanced/ms-6.png)
 
 
 
@@ -220,9 +218,7 @@ func main() {
 
 > b 站仿照用 go 写了一个 https://github.com/bilibili/discovery
 
-**[![image.png](https://img.lailin.xyz/image/1606745349658-c7638390-9cbd-4eca-b2ad-4baa15449c3f.png)](https://img.lailin.xyz/image/1606745349658-c7638390-9cbd-4eca-b2ad-4baa15449c3f.png)**
-
-**[image.png](https://img.lailin.xyz/image/1606745349658-c7638390-9cbd-4eca-b2ad-4baa15449c3f.png)**
+![](../../.go_study/assets/go_advanced/ms-7.png)
 
 
 
@@ -295,11 +291,17 @@ func Subset(backends []string, clientID, subsetSize int) []string {
 ```
 
 **为什么上面这个算法可以保证可以均匀分布？**
+
 首先，**shuffle 算法保证在 round 一致的情况下，backend 的排列一定是一致的。**
+
 因为每个实例拥有从 0 开始的连续唯一的自增 id，且计算过程能够保证每个 round 内所有实例拿到的服务列表的排列一致，因此在同一个 round 内的 client 会分别 backend 排列的不同部分的切片作为选中的后端服务来建立连接。
-所以只要 client id 是连续的，那么 client 发向后端的连接就一定是连续的
+
+所以只要 client id 是连续的，那么 client 发向后端的连接就一定是连续的。
+
 **参考资料:**
+
 https://sre.google/sre-book/load-balancing-datacenter/
+
 https://xargin.com/limiting-conn-wih-subset/
 
 ## 多租户（如何解决多套测试环境的问题）
@@ -323,9 +325,7 @@ https://xargin.com/limiting-conn-wih-subset/
 
 #### 解决方案 2：多租户，染色发布
 
-[![image.png](https://img.lailin.xyz/image/1606799997241-a37aa06a-4d44-4001-96bb-b0287e9eead5.png)](https://img.lailin.xyz/image/1606799997241-a37aa06a-4d44-4001-96bb-b0287e9eead5.png)
-
-[image.png](https://img.lailin.xyz/image/1606799997241-a37aa06a-4d44-4001-96bb-b0287e9eead5.png)
+![](../../.go_study/assets/go_advanced/ms-8.png)
 
 
 
@@ -353,10 +353,7 @@ https://xargin.com/limiting-conn-wih-subset/
 
 ### 如何进行全链路压测
 
-[![image.png](https://img.lailin.xyz/image/1606802196792-9f605d74-4f29-458a-923f-6adc7a087e70.png)](https://img.lailin.xyz/image/1606802196792-9f605d74-4f29-458a-923f-6adc7a087e70.png)
-
-[image.png](https://img.lailin.xyz/image/1606802196792-9f605d74-4f29-458a-923f-6adc7a087e70.png)
-
+![](../../.go_study/assets/go_advanced/ms-9.png)
 
 和上面的测试环境的解决方案类似，但是我们需要搭建一套和线上一致的影子系统。
 

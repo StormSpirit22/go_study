@@ -94,7 +94,7 @@
 
 ## **Q5: 微服务如何对外暴露？**
 
-[![https://img.lailin.xyz/image/1606552913072-f2ae26c9-6897-4dc8-9384-95f493ff5006.svg](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/go_advanced/ms-1.svg)](https://img.lailin.xyz/image/1606552913072-f2ae26c9-6897-4dc8-9384-95f493ff5006.svg)
+![](../../.go_study/assets/go_advanced/ms-1.svg)
 
 
 
@@ -133,13 +133,13 @@
 
      
 
-    ![https://img.lailin.xyz/image/1606631756304-ac2b31e1-771a-45e7-9b99-5234badc5d0d.svg](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/go_advanced/ms-2.svg)
+    ![](../../.go_study/assets/go_advanced/ms-2.svg)
 
     
 
 ## **Q7: 如何保证微服务之间的安全？**
 
-[![https://img.lailin.xyz/image/1606632869613-c887da17-ec2f-4221-822a-84bbd21e4d3f.svg](/Users/tianyou/Documents/Github/ty/go_study/.go_study/assets/go_advanced/ms-3.svg)](https://img.lailin.xyz/image/1606632869613-c887da17-ec2f-4221-822a-84bbd21e4d3f.svg)
+![](../../.go_study/assets/go_advanced/ms-3.svg)
 
 
 
