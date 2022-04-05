@@ -13,7 +13,7 @@ go test -race
 
 `counter ++` 不是原子操作，它一般会被解析成 3 条指令：
 
-![image-20220404175241704](/Users/tianyou/Library/Application Support/typora-user-images/image-20220404175241704.png)
+![image-20220404175241704](../../.go_study/assets/go_advanced/sync-12.png)
 
 这时我们应该使用 Go 同步语义: Mutex、Atomic。
 
@@ -94,7 +94,9 @@ type interface struct {
 
 这个案例有趣的点还在于，这个案例的两个结构体的内存布局一模一样所以出现错误也不会 panic 退出。但如果在某一个结构体里面再加入一个 int 或 string 的字段，去读取就会导致 panic。所以这种错误在线上实在太难发现了，而且很有可能会很致命。
 
-这个案例还有一个衍生案例，大家有兴趣可以点开查看一下，并不是说要看起来一样才不会 panic https://www.ardanlabs.com/blog/2014/06/ice-cream-makers-and-data-races-part-ii.html
+这个案例还有一个衍生案例，大家有兴趣可以点开查看一下，并不是说要看起来一样才不会 panic。
+
+ https://www.ardanlabs.com/blog/2014/06/ice-cream-makers-and-data-races-part-ii.html
 
 
 
