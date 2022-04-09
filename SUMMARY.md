@@ -26,3 +26,7 @@
     - [goroutine](go_advanced/week03/goroutine.md)
     - [内存模型](go_advanced/week03/memory_model.md)
     - [sync 包](go_advanced/week03/sync.md)
+  - [第五周：微服务可用性设计](go_advanced/week05/REAME.md)
+    - [隔离](go_advanced/week05/isolation.md)
+
+​	
