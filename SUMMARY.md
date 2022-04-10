@@ -28,5 +28,7 @@
     - [sync 包](go_advanced/week03/sync.md)
   - [第五周：微服务可用性设计](go_advanced/week05/REAME.md)
     - [隔离](go_advanced/week05/isolation.md)
+    - [超时](go_advanced/week05/timeout.md)
+    - [过载保护、限流与熔断](go_advanced/week05/ratelimit.md)
 
 ​	
