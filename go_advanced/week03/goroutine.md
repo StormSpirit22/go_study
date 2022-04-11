@@ -146,7 +146,7 @@ func main() {
 
 serveDebug 是在一个单独的 goroutine 中运行的，如果它返回，那么所在的 goroutine 将退出，而程序的其余部分继续运行。由于 /debug 处理程序很久以前就停止工作了，所以其他同学会很不高兴地发现他们无法在需要时从您的应用程序中获取统计信息。
 
-如果 ListenAndServer 返回 error，由于在 goroutine 里，所以 main.main 无法退出。而且 **log.Fatal 调用了 os.Exit，defers 不会被调用到**（建议：只有在 main 函数和 init 函数里才能调用 log.Fata，基础库里一般不使用l）。
+如果 ListenAndServer 返回 error，由于在 goroutine 里，所以 main.main 无法退出。而且 **log.Fatal 调用了 os.Exit，defers 不会被调用到**（建议：只有在 main 函数和 init 函数里才能调用 log.Fatal，基础库里一般不使用）。
 
 改良：
 

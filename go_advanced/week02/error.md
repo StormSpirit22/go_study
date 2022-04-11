@@ -389,7 +389,7 @@ func WriteAll(w io.Writer, buf []byte) error {
 
 errors.Wrap：会为错误添加堆栈信息，并添加需要的日志信息，而且其类型也是预定义类型，可以通过 == 来判断，也是一种 sentinel error。注意不要处处都用 errors.Wrap，因为那样会有大量的冗余堆栈。
 
-ßerrors.WithMessage：只为错误添加需要的日志信息，不添加堆栈信息。
+errors.WithMessage：只为错误添加需要的日志信息，不添加堆栈信息。
 
 errors.Cause：输出错误的根因。也可以通过 `%T` 来输出错误的类型，比如下图的 `*os.PathError` 类型：
 
