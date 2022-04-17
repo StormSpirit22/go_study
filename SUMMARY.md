@@ -30,5 +30,7 @@
     - [隔离](go_advanced/week05/isolation.md)
     - [超时](go_advanced/week05/timeout.md)
     - [过载保护、限流与熔断](go_advanced/week05/ratelimit.md)
+    - [降级&重试](go_advanced/week05/degraded.md)
+    - [负载均衡](go_advanced/week05/loadbalance.md)
 
 ​	
