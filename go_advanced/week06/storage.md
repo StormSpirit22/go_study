@@ -8,7 +8,7 @@
 
 ![评论图](../../.go_study/assets/go_advanced/storage-1.png)
 
-数据表：
+数据表设计：
 
 
 
@@ -76,7 +76,9 @@ select id from comment_index where parent/root in (上面查询出来的 id) and
 
 这种迭代查询的方式也可以直接用图数据库来实现，可能更好，比如 DGraph、HugeGraph 类似的图存储思路。
 
+### 总结
 
+主题一张表，评论索引与评论内容分开两张表来存，表里有一些统计字段，避免每次都重新统计。内容表的主键直接使用评论 id，避免使用评论 id 查询还需要回表。评论内容可以使用 kv 数据库。写入时可以先写评论内容表，评论索引表和主题表用一个事务更新。
 
 ### 缓存设计
 
@@ -118,7 +120,7 @@ sorted set 是要增量追加的，因此必须判定 key 存在，才能 zdd。
 
 更进一步的，后续连续的请求，仍然可能会短时 cache miss，我们可以在进程内设置一个过期时间为 5 秒的 short-lived flag，标记最近有一个人投递了同一个 key 的 cache rebuild 的消息，如果有这个 flag ，那么相同的 kafka 消息直接 drop 而不会再去查 mysql 构建缓存，这样 mysql 的压力更小。
 
-更进一步，可以在 comment-job 内存里设置一个过期时间很短的比如 5 秒的 LRU cache， 有一个线程去 mysql 里查到了数据就更新这个缓存，然后其他的线程直接从这个缓存里拿数据即可，这样就不用重复去 mysql 里查了，同样减少了对 mysql 的查询压力。
+再进一步，可以在 comment-job 内存里设置一个过期时间很短的比如 5 秒的 LRU cache， 有一个线程去 mysql 里查到了数据就更新这个缓存，然后其他的线程直接从这个缓存里拿数据即可，这样就不用重复去 mysql 里查了，同样减少了对 mysql 的查询压力。
 
 一般不需要使用分布式锁，实现起来太复杂而且很容易出错。
 
@@ -128,6 +130,6 @@ sorted set 是要增量追加的，因此必须判定 key 存在，才能 zdd。
 
 在内存中使用 hashmap 统计每个 key 的访问频次，这里可以使用滑动窗口统计（如下图），即每个窗口中，维护一个 hashmap，之后统计所有未过期的 bucket，汇总所有 key 的数据。
 
-之后使用小堆计算 TopK 的数据，自动进行热点识别。把 TopK 的 key 统一 load 到本地缓存。
+之后使用小顶堆计算 TopK 的数据，自动进行热点识别。把 TopK 的 key 统一 load 到本地缓存。
 
 ![滑动窗口](../../.go_study/assets/go_advanced/storage-5.png)
