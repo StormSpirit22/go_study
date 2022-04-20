@@ -37,5 +37,6 @@
   
   - [第六周：评论系统架构设计](go_advanced/week06/README.md)
     - [功能和架构设计](go_advanced/week06/design.md)
+    - [存储和可用性设计](go_advanced/week06/storage.md)
 
 ​	
