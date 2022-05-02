@@ -16,6 +16,27 @@ DDD 全程是 Domain-Driven Design，中文叫领域驱动设计，是一套应�
 
 以前的系统分析和设计是分开的，导致需求和成品非常容易出现偏差，两者相对独立，还会导致沟通困难，DDD 则打破了这种隔阂，提出了领域模型概念，统一了分析和设计编程，使得软件能够更灵活快速跟随需求变化。
 
+## **DDD分层详解**
+
+### **四层架构图**
+
+![img](../../.go_study/assets/go_advanced/ddd-1.png)
+
+在该架构中，上层模块可以调用下层模块，反之不行。即
+
+- `Interface` ——> `application` | `domain` | `infrastructure`
+- `application` ——>`domain` | `infrastructure`
+- `domain` ——>`infrastructure`
+
+### **分层作用**
+
+| 分层       | 英文                 | 描述                                                         |
+| :--------- | :------------------- | :----------------------------------------------------------- |
+| 表现层     | User Interface       | 用户界面层，或者表现层，负责向用户显示解释用户命令           |
+| 应用层     | Application Layer    | 定义软件要完成的任务，并且指挥协调领域对象进行不同的操作。该层不包含业务领域知识。 |
+| 领域层     | Domain Layer         | 或称为模型层，系统的核心，负责表达业务概念，业务状态信息以及业务规则。即包含了该领域（问题域）所有复杂的业务知识抽象和规则定义。该层主要精力要放在领域对象分析上，可以从实体，值对象，聚合（聚合根），领域服务，领域事件，仓储，工厂等方面入手 |
+| 基础设施层 | Infrastructure Layer | 主要有2方面内容，一是为领域模型提供持久化机制，当软件需要持久化能力时候才需要进行规划；一是对其他层提供通用的技术支持能力，如消息通信，通用工具，配置等的实现； |
+
 ## DDD 的相关术语与基本概念
 
 讨论完宏观概念以后，让我们来认识一下 DDD 的一些概念吧，每个概念我都为你找了一个 Spring 模式开发的映射概念，方便你理解，但要仅仅作为理解用，不要过于依赖。
@@ -74,7 +95,7 @@ DDD 全程是 Domain-Driven Design，中文叫领域驱动设计，是一套应�
 
 
 
-![img](https://pic3.zhimg.com/80/v2-8276906d18c53925713a279e9be460be_1440w.jpg)
+![img](../../.go_study/assets/go_advanced/ddd-2.png)
 
 理论上，限界上下文的边界就是微服务的边界，因此，理解限界上下文在设计中非常重要。
 
@@ -258,7 +279,7 @@ public class Article implements Serializable {
 
 ## DDD 工程实现
 
-![C端抽奖领域](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2017/9b589fa0.svg)
+![image-20220502205324773](../../.go_study/assets/go_advanced/ddd-5.png)
 
 **限界上下文之间的映射关系**
 
@@ -272,7 +293,7 @@ public class Article implements Serializable {
 - 大泥球（Big Ball of Mud）：混杂在一起的上下文关系，边界不清晰。
 - 另谋他路（SeparateWay）：两个完全没有任何联系的上下文。
 
-![上下文映射关系](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2017/a694c7a8.svg)
+![image-20220502205400580](../../.go_study/assets/go_advanced/ddd-6.png)
 
 
 
@@ -402,7 +423,7 @@ public class AwardPool {
 
 代码演示4 AwardPool
 
-与以往的仅有getter、setter的业务对象不同，领域对象具有了行为，对象更加丰满。同时，比起将这些逻辑写在服务内（例如**Service），领域功能的内聚性更强，职责更加明确。
+与以往的仅有getter、setter的业务对象不同，领域对象具有了行为，对象更加丰满。同时，比起将这些逻辑写在服务内（例如Service），领域功能的内聚性更强，职责更加明确。
 
 ### 资源库
 
@@ -533,7 +554,7 @@ public class LotteryServiceImpl implements LotteryService {
 
 ### 数据流转
 
-![数据流转](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2017/bb6c4795.svg)
+<img src="/Users/tianyou/Library/Application Support/typora-user-images/image-20220502205421629.png" alt="image-20220502205421629" style="zoom:50%;" />
 
 数据流转
 
@@ -559,7 +580,7 @@ public class LotteryServiceImpl implements LotteryService {
 
 下图中领域服务是使用微服务技术剥离开来，独立部署，对外暴露的只能是服务接口，领域对外暴露的业务逻辑只能依托于领域服务。而在Vernon著作中，并未假定微服务架构风格，因此领域层暴露的除了领域服务外，还有聚合、实体和值对象等。此时的应用服务层是比较简单的，获取来自接口层的请求参数，调度多个领域服务以实现界面层功能。
 
-![DDD-分层](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2017/4480c619.svg)
+![image-20220502205440103](../../.go_study/assets/go_advanced/ddd-8.png)
 
 DDD-分层
 
@@ -571,11 +592,9 @@ DDD-分层
 
 此时应用服务对内还属于应用服务，对外已是领域服务的概念，需要将其暴露为微服务。
 
-![DDD-系统架构图](https://awps-assets.meituan.net/mit-x/blog-images-bundle-2017/db5b1154.svg)
+![image-20220502205456322](../../.go_study/assets/go_advanced/ddd-9.png)
 
 DDD-系统架构图
-
-
 
 注：具体的架构实践可按照团队和业务的实际情况来，此处仅为作者自身的业务实践。除分层架构外，如CQRS架构也是不错的选择
 
