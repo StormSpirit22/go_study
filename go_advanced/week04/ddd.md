@@ -1,12 +1,12 @@
 # 领域驱动设计简介
 
-简单介绍下 DDD（Domain-Driven Design，领域驱动设计） 思想，之后课程里会频发使用到这里面的一些概念。
+简单介绍下 DDD（Domain-Driven Design，领域驱动设计） 思想，之后课程里会使用到这里面的一些概念。
 
 参考
 
-https://tech.meituan.com/2017/12/22/ddd-in-practice.html
+[领域驱动设计在互联网业务开发中的实践](https://tech.meituan.com/2017/12/22/ddd-in-practice.html)
 
-https://zhuanlan.zhihu.com/p/91525839
+[DDD 模式从天书到实践](https://zhuanlan.zhihu.com/p/91525839)
 
 
 
