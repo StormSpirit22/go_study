@@ -32,6 +32,8 @@
     - [DDD简介(预备知识)](go_advanced/week04/ddd.md)
     - [工程项目结构](go_advanced/week04/structure.md)
     - [API 设计](go_advanced/week04/api.md)
+    - [配置管理](go_advanced/week04/config.md)
+    - [Go Module & 单元测试](go_advanced/week04/mod_ut.md)
   - [第五周：微服务可用性设计](go_advanced/week05/README.md)
     - [隔离](go_advanced/week05/isolation.md)
     - [超时](go_advanced/week05/timeout.md)
