@@ -232,6 +232,14 @@ ok      example 0.006s
 
 ### 网络测试(Network)
 
+假设需要测试某个 API 接口的 handler 能够正常工作，例如 helloHandler
+
+```go
+func helloHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("hello world"))
+}
+```
+
 针对 http 开发的场景，使用标准库 `net/http/httptest` 进行测试更为高效。
 
 ```go
@@ -378,6 +386,9 @@ FAIL    code/max        0.017s
 
 [gomock](https://github.com/golang/mock) 是官方提供的 mock 框架，同时还提供了 mockgen 工具用来辅助生成测试代码。
 
+- mock 作用的是**接口**，因此将依赖抽象为接口，而不是直接依赖具体的类。
+- 不直接依赖的实例，而是使用依赖注入降低耦合性。
+
 ### 例子
 
 一个例子， user.go：
@@ -392,7 +403,7 @@ type UserAge interface {
 	GetAge(user string) int
 }
 
-// PrintUserAge 一个简单的例子
+// PrintUserAge 一个简单的例子，使用依赖注入将 age 对象作为参数传入
 func PrintUserAge(user string, age UserAge) string {
 	return fmt.Sprintf("%s age is: %d", user, age.GetAge(user))
 }
@@ -478,8 +489,8 @@ func TestSimple(t *testing.T) {
 
 - `gomock.NewController`：返回 `gomock.Controller`，它代表 mock 生态系统中的顶级控件。定义了 mock 对象的范围、生命周期和期待值。另外它在多个 goroutine 中是安全的。
 - `NewMockUserAge`：创建一个新的 mock 实例。
-- `age.EXPECT().GetAge(gomock.Any()).Return(1).AnyTimes()` ：意思是对 `GetAge` 方法传入任何参数( `gomock.Any()` )都会返回 1，任意次执行结果都一样。
-- `assert.Equal(t, "a age is: 1", PrintUserAge("a", age))`：将 mock 对象 `age` 和任意一个用户 "a" 传入到 `PrintUserAge` 函数，断言返回的值是否相同。
+- `age.EXPECT().GetAge(gomock.Any()).Return(1).AnyTimes()` ：意思是对 `GetAge` 方法传入任何参数( `gomock.Any()` )都会返回 1，任意次执行结果都一样。即 age 这个实例，对任意参数任意调用次数都会 mock 返回 1。
+- `assert.Equal(t, "a age is: 1", PrintUserAge("a", age))`：将 mock 对象 `age` 和用户 "a" 传入到 `PrintUserAge` 函数，断言返回的值是否相同。
 
 运行测试命令，测试覆盖率：
 
@@ -514,7 +525,217 @@ go tool cover -html=cover.out
 
 
 
-更复杂的项目单元测试可参考 [项目 “单元测试”](https://lailin.xyz/post/go-training-week4-unit-test.html#%E9%A1%B9%E7%9B%AE-%E2%80%9C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E2%80%9D)。
+以下内容转载自[项目 “单元测试”](https://lailin.xyz/post/go-training-week4-unit-test.html#%E9%A1%B9%E7%9B%AE-%E2%80%9C%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95%E2%80%9D)。
+
+### 项目 “单元测试”
+
+#### service
+
+这一层主要处理的 dto 和 do 数据之间的相互转换，本身是不含什么业务逻辑的，目前我们使用的是 http，所以在这一层的测试一般会使用 httptest 来模拟实际请求的测试。然后在对 usecase 层的调用上，我们使用 gomock mock 掉相关的接口，简化我们的测试。如果你不想写的那么麻烦，也可以不用启用 httptest 来测试，直接测试 service 层的代码也是可以的，不过这样的话，service 层的代码测试的内容就没有多少了，也就是看转换数据的时候符不符合预期。
+
+这一层主要完成的测试是：
+
+- 参数的校验是否符合预期。
+- 数据的转换是否符合预期，如果你像我一样偷懒使用了类似 [copier](https://pkg.go.dev/github.com/jinzhu/copier) 的工具的话一定要写这部分的单元测试，不然还是很容易出错，容易字段名不一致导致 copier 的工作不正常。
+
+当然如果时间有限的话，这一层的测试也不是必须的，因为接入层相对来说变化也比较快一点，这是说写了单元测试，基本上在测试阶段很少会出现由于参数的问题提交过来的 bug。
+
+同样我们直接看一个例子, 首先是 service 层的代码，可以看到逻辑很简单，就是调用了一下，usecase 层的接口：
+
+```go
+var _ v1.BlogServiceHTTPServer = &PostService{}
+
+// PostService PostService
+type PostService struct {
+	Usecase domain.IPostUsecase
+}
+
+// CreateArticle 创建文章
+func (p *PostService) CreateArticle(ctx context.Context, req *v1.Article) (*v1.Article, error) {
+	article, err := p.Usecase.CreateArticle(ctx, domain.Article{
+		Title:    req.Title,
+		Content:  req.Content,
+		AuthorID: req.AuthorId,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	var resp v1.Article
+	err = copier.Copy(&resp, &article)
+	return &resp, err
+}
+```
+
+再看看单元测试。
+
+首先是初始化，之前我们讲到初始化的时候我们一般在 cmd 当中使用 wire 自动生成，但是在单元测试中 wire 并不好用，并且由于单元测试的时候，我们的依赖项其实没有真实的依赖项那么复杂，我们只需要关心当前这一层的依赖即可，所以一般在单元测试的时候我都是手写初始化。
+
+一般会像下面这样，使用一个 struct 包装起来，因为在后面像是 mock 的 usecase 还需要调用。
+
+```go
+type testPostService struct {
+	post    *PostService
+	usecase *mock_domain.MockIPostUsecase
+	handler *gin.Engine
+}
+
+func initPostService(t *testing.T) *testPostService {
+	ctrl := gomock.NewController(t)
+	usecase := mock_domain.NewMockIPostUsecase(ctrl)
+	service := &PostService{Usecase: usecase}
+
+	handler := gin.New()
+	v1.RegisterBlogServiceHTTPServer(handler, service)
+
+	return &testPostService{
+		post:    service,
+		usecase: usecase,
+		handler: handler,
+	}
+}
+```
+
+实际的测试，这一块主要是为了展示一个完整的单元测试所以贴的代码稍微长了一些，后面的两层具体的单元测试代码都大同小异，我就不再贴了，主要的思路就是把依赖的接口都用 gomock mock 掉，这样实际写单元测试代码的时候就会比较简单。
+
+```go
+func TestPostService_CreateArticle(t *testing.T) {
+	s := initPostService(t)
+	s.usecase.EXPECT().
+		CreateArticle(gomock.Any(), gomock.Eq(domain.Article{Title: "err", AuthorID: 1})).
+		Return(domain.Article{}, fmt.Errorf("err"))
+	s.usecase.EXPECT().
+		CreateArticle(gomock.Any(), gomock.Eq(domain.Article{Title: "success", AuthorID: 2})).
+		Return(domain.Article{Title: "success"}, nil)
+
+	tests := []struct {
+		name       string
+		params     *v1.Article
+		want       *v1.Article
+		wantStatus int
+		wantCode   int
+		wantErr    string
+	}{
+		{
+			name: "参数错误 author_id 必须",
+			params: &v1.Article{
+				Title:    "1",
+				Content:  "2",
+				AuthorId: 0,
+			},
+			want:       nil,
+			wantStatus: 400,
+			wantCode:   400,
+		},
+		{
+			name: "失败",
+			params: &v1.Article{
+				Title:    "err",
+				AuthorId: 1,
+			},
+			want:       nil,
+			wantStatus: 500,
+			wantCode:   -1,
+		},
+		{
+			name: "成功",
+			params: &v1.Article{
+				Title:    "success",
+				AuthorId: 2,
+			},
+			want: &v1.Article{
+				Title: "success",
+			},
+			wantStatus: 200,
+			wantCode:   0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 下面这些一般都会封装在一起，这里是为了演示
+
+			// 初始化请求
+			b, err := json.Marshal(tt.params)
+			require.NoError(t, err)
+			uri := fmt.Sprintf("/v1/author/%d/articles", tt.params.AuthorId)
+			req := httptest.NewRequest(http.MethodPost, uri, bytes.NewReader(b))
+
+			// 初始化响应
+			w := httptest.NewRecorder()
+
+			// 调用相应的handler接口
+			s.handler.ServeHTTP(w, req)
+
+			// 提取响应
+			resp := w.Result()
+			defer resp.Body.Close()
+			require.Equal(t, tt.wantStatus, resp.StatusCode)
+
+			// 读取响应body
+			respBody, _ := ioutil.ReadAll(resp.Body)
+			r := struct {
+				Code int         `json:"code"`
+				Msg  string      `json:"msg"`
+				Data *v1.Article `json:"data"`
+			}{}
+			require.NoError(t, json.Unmarshal(respBody, &r))
+
+			assert.Equal(t, tt.wantCode, r.Code)
+			assert.Equal(t, tt.want, r.Data)
+		})
+	}
+}
+```
+
+### usecase
+
+usecase 是主要的业务逻辑，所以一般写单元测试的时候都应该先写这一层的单远测试，而且这一层我们没有任何依赖，只需要把 repo 层的接口直接 mock 掉就可以了，是非常纯净的一层，其实也就这一层的单元测试才是真正的单元测试。
+
+### repo
+
+repo 层我们一般依赖 mysql 或者是 redis 等数据库，在测试的时候我们可以直接启动一个全新的数据库用于测试即可。
+
+#### 本地
+
+直接使用 docker run 对应的数据库就可以了。
+
+#### ci/cd
+
+我们的 ci cd 是使用的 gitlab，gitlab 有一个比较好用的功能是指定 service，只需要指定对应的数据库镜像我们就可以在测试容器启动的时候自动启动对应的测试数据库容器，并且每一次都是全新的空数据库。我们只需要每次跑单元测试的时候先跑一下数据库的 migration 就可以了。
+
+下面给出一个配置示例：
+
+```yaml
+test:
+  stage: test
+  image: golang:1.15-alpine-test
+  services:
+    - redis:v4.0.11
+    - postgres:10-alpine
+    - docker:19-dind
+  variables:
+    POSTGRES_DB: test_db
+    POSTGRES_USER: root
+    POSTGRES_PASSWORD: 1234567
+    GOPROXY: "这里设置 proxy 地址"
+    CGO_ENABLED: 0
+  script:
+    - go mod download
+    - go run db/*.go
+    - mkdir artifacts
+    - gotestsum -- -p 1 -v -coverprofile=./artifacts/coverage.out -coverpkg=./... ./...
+    # 单元测试统计去除一些不需要测试的代码
+    - |
+      cat ./artifacts/coverage.out | \
+      grep -v "/mock/" | grep -v "/db/" |  grep -v "pb.go" > ./artifacts/coverage.out2
+    - go tool cover -func=./artifacts/coverage.out2
+  # 捕获单元测试覆盖率在 gitlab job 上显示
+  coverage: '/total:\s+.*\s+\d+\.\d+%/'
+  artifacts:
+    paths:
+      - artifacts/coverage.out
+```
 
 
 
