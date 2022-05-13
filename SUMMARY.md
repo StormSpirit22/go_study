@@ -49,4 +49,6 @@
   - [第八周：分布式缓存&分布式事务](go_advanced/week08/README.md)
     - [分布式缓存](go_advanced/week08/distributed_cache.md)
     - [分布式事务](go_advanced/week08/distributed_transaction.md)
+  - [第九周：网络编程](go_advanced/week09/README.md)
+    - [网络通信协议](go_advanced/week09/net_protocol.md)
 
