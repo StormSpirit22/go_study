@@ -51,4 +51,5 @@
     - [分布式事务](go_advanced/week08/distributed_transaction.md)
   - [第九周：网络编程](go_advanced/week09/README.md)
     - [网络通信协议](go_advanced/week09/net_protocol.md)
+    - [Goim 项目](go_advanced/week09/im_gateway.md)
 
