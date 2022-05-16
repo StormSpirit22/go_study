@@ -361,6 +361,20 @@ type Channel struct {
 	watchOps map[int32]struct{}
 	mutex    sync.RWMutex
 }
+
+// Ring ring proto buffer.
+// 用于存储包的环形数组
+type Ring struct {
+	// read
+	rp   uint64			// 读索引
+	num  uint64			// 容量
+	mask uint64			// 容量-1，即最大索引
+	// TODO split cacheline, many cpu cache line size is 64
+	// pad [40]byte
+	// write
+	wp   uint64			// 写索引
+	data []protocol.Proto  // 包 buffer
+}
 ```
 
 - Bucket
@@ -476,6 +490,20 @@ type Logic struct {
 - Push(RoomID, Message)
 - Push(Message)
 
+##### 内部实现
+
+```go
+// Job is push job.
+type Job struct {
+	c            *conf.Config
+	consumer     *cluster.Consumer			// kafka comsumer
+	cometServers map[string]*Comet
+
+	rooms      map[string]*Room
+	roomsMutex sync.RWMutex
+}
+```
+
 
 
 ### 优化
@@ -483,27 +511,27 @@ type Logic struct {
 1. 模块优化，尽可能的拆分锁的粒度，来减少资源竞态。
 2. 内存管理方面，通过申请一个大内存，然后拆成所需的数据类型，自己进行管理，来减少频繁申请与销毁内存操作对性能的损耗。
 3. 充分利用 goroutine 和 channel 实现高并发。
-4. 合理应用缓冲，提供读写性能。
+4. 合理应用缓冲，提高读写性能。
 
 
 
 #### 模块优化
 
-模块优化也分为以下几个方面
+模块优化也分为以下几个方面：
 
-- 消息分发一定是并行的并且互不干扰：
+- 消息分发一定是并行的并且互不干扰。
 
   要保证到每一个 Comet 的通讯通道必须是相互独立的，保证消息分发必须是完全并列的，并且彼此之间互不干扰。
 
-- 并发数一定是可以进行控制的：
+- 并发数一定是可以进行控制的。
 
   每个需要异步处理开启的 Goroutine（Go 协程）都必须预先创建好固定的个数，如果不提前进行控制，那么 Goroutine 就随时存在爆发的可能。
 
-- 全局锁一定是被打散的：
+- 全局锁一定是被打散的。
 
-  Socket 链接池管理、用户在线数据管理都是多把锁；打散的个数通常取决于 CPU，往往需要考虑 CPU 切换时造成的负担，并非是越多越好。
+  Socket 连接池管理、用户在线数据管理都是多把锁；打散的个数通常取决于 CPU，往往需要考虑 CPU 切换时造成的负担，并非是越多越好。
 
-比如通过 bucket 来拆分 TCP 链接，每个 TCP 连接根据一定的规则划分到不同的 bucket 中进行管理，而不是集中到单个bucket 中，这样锁的粒度更小，资源竞态几率就更低，性能也能更好的提升，不需要将时间花费在等锁上。用户可以自定义配置对应的 buckets 数量，在大并发业务上尤其明显。
+比如在 comet 模块中，通过 bucket 来拆分 TCP 连接，每个 TCP 连接根据一定的规则划分到不同的 bucket 中进行管理，而不是集中到单个 bucket 中，这样锁的粒度更小，资源竞态几率就更低，性能也能得到更好的提升，不需要将时间花费在等锁上。用户可以自定义配置对应的 buckets 数量，在大并发业务上尤其明显。
 
 ```go
 //internal/comet/server.go
@@ -517,6 +545,7 @@ func NewServer(c *conf.Config) *Server {
 	}
 	...
 }
+
 //根据 subKey 获取 bucket，将不同的 TCP 分配到不同的 bucket 进行管理。 
 func (s *Server) Bucket(subKey string) *Bucket {
 	idx := cityhash.CityHash32([]byte(subKey), uint32(len(subKey))) % s.bucketIdx
@@ -714,7 +743,7 @@ func (p *Pool) Put(b *Buffer) {
 
 ##### comet-bucket
 
-比如 comet 对于推送 room 消息， 每个 bucket 将推送通道分成 32（RoutineAmount） 个，每个通道 1024（RoutineSize） 长度。每个通道由一个 goroutine 进行消费处理。
+比如 comet 对于推送 room 消息， 每个 bucket 将推送通道分成 32（RoutineAmount） 个，每个通道 1024（RoutineSize） 缓冲长度。每个通道由一个 goroutine 进行消费处理。
 
 推送 room  消息的时候，依次推送到这 32 个通道中。这样做能提高 bucket 内部的并发度，不至于一个通道堵塞，导致全部都在等待。 
 
@@ -781,12 +810,13 @@ func NewComet(in *naming.Instance, c *conf.Comet) (*Comet, error) {
 	for i := 0; i < c.RoutineSize; i++ {
 		cmt.pushChan[i] = make(chan *comet.PushMsgReq, c.RoutineChan)
 		cmt.roomChan[i] = make(chan *comet.BroadcastRoomReq, c.RoutineChan)
+    // 这里将消息推送分成三种，在多个 goroutine 中并发处理
 		go cmt.process(cmt.pushChan[i], cmt.roomChan[i], cmt.broadcastChan)
 	}
 	return cmt, nil
 }
 
-
+// 对 pushChan 数组中的 channel 轮询插入消息
 // Push push a user message.
 func (c *Comet) Push(arg *comet.PushMsgReq) (err error) {
 	idx := atomic.AddUint64(&c.pushChanNum, 1) % c.routineSize
@@ -794,28 +824,54 @@ func (c *Comet) Push(arg *comet.PushMsgReq) (err error) {
 	return
 }
 
-// BroadcastRoom broadcast a room message.
-func (c *Comet) BroadcastRoom(arg *comet.BroadcastRoomReq) (err error) {
-	idx := atomic.AddUint64(&c.roomChanNum, 1) % c.routineSize
-	c.roomChan[idx] <- arg
-	return
-}
+...
 
-// Broadcast broadcast a message.
-func (c *Comet) Broadcast(arg *comet.BroadcastReq) (err error) {
-	c.broadcastChan <- arg
-	return
+func (c *Comet) process(pushChan chan *comet.PushMsgReq, roomChan chan *comet.BroadcastRoomReq, broadcastChan chan *comet.BroadcastReq) {
+	for {
+		select {
+		case broadcastArg := <-broadcastChan:
+			_, err := c.client.Broadcast(context.Background(), &comet.BroadcastReq{
+				Proto:   broadcastArg.Proto,
+				ProtoOp: broadcastArg.ProtoOp,
+				Speed:   broadcastArg.Speed,
+			})
+			if err != nil {
+				log.Errorf("c.client.Broadcast(%s, reply) serverId:%s error(%v)", broadcastArg, c.serverID, err)
+			}
+		case roomArg := <-roomChan:
+			_, err := c.client.BroadcastRoom(context.Background(), &comet.BroadcastRoomReq{
+				RoomID: roomArg.RoomID,
+				Proto:  roomArg.Proto,
+			})
+			if err != nil {
+				log.Errorf("c.client.BroadcastRoom(%s, reply) serverId:%s error(%v)", roomArg, c.serverID, err)
+			}
+		case pushArg := <-pushChan:
+			_, err := c.client.PushMsg(context.Background(), &comet.PushMsgReq{
+				Keys:    pushArg.Keys,
+				Proto:   pushArg.Proto,
+				ProtoOp: pushArg.ProtoOp,
+			})
+			if err != nil {
+				log.Errorf("c.client.PushMsg(%s, reply) serverId:%s error(%v)", pushArg, c.serverID, err)
+			}
+		case <-c.ctx.Done():
+			return
+		}
+	}
 }
 
 ```
 
-- pushChan：推送单聊消息的通道，分为 RoutineChan 组，依次将消息推送到这些组中，每个组有自己的 goroutine, 来提高并发性。
-- roomChan：推送群聊消息的通道，分为 RoutineChan 组，依次将消息推送的这些组中，每个组有自己的 goroutine, 来提高并发性。
+开启 RoutineSize 个 goroutine, 每个 goroutine 都会分别处理私聊、群聊和广播消息。
+
+- pushChan：推送私聊消息的通道，分为 RoutineSize 组，依次将消息推送的这些组中，每个组有自己的 goroutine, 来提高并发性。
+- roomChan：推送群聊消息的通道，分为 RoutineSize 组，依次将消息推送的这些组中，每个组有自己的 goroutine, 来提高并发性。
 
 - broadcastChan：广播消息。
 
 
-开启 RoutineSize 个 goroutine, 每个 goroutine 分别处理单聊、群聊和广播消息。
+
 
 #### 合理应用缓冲，提高读写性能
 
@@ -907,7 +963,16 @@ func (r *Room) pushproc(batch int, sigTime time.Duration) {
 优化项：
 
 1. 拆分职能、可以做到各个模块的扩缩容。拆分粒度，减少竞态和性能损耗。
+
 2. 更巧妙的方式去使用内存来减少频繁申请和销毁内存的性能损耗。
+
 3. 充分利用语言特性实现高并发。
+
 4. 合理应用缓冲提高读写性能。
+
+   
+
+## 参考
+
+[Android微信智能心跳方案](https://cloud.tencent.com/developer/article/1030660)
 

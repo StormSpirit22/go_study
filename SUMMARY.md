@@ -52,4 +52,5 @@
   - [第九周：网络编程](go_advanced/week09/README.md)
     - [网络通信协议](go_advanced/week09/net_protocol.md)
     - [Goim 项目](go_advanced/week09/im_gateway.md)
+    - [发号器& IM 私信系统设计](go_advanced/week09/chat.md)
 

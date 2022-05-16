@@ -448,3 +448,16 @@ Go 语言为了提高在不同操作系统上的 I/O 操作性能，使用平台
 - src/runtime/netpoll_aix.go
 - src/runtime/netpoll_fake.go
 
+
+
+## 参考
+
+[网络轮询器](https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-netpoller/)
+
+[Go语言基础之网络编程](https://www.liwenzhou.com/posts/Go/15_socket/)
+
+[HTTP 的特性](https://hit-alibaba.github.io/interview/basic/network/HTTP.html)
+
+[DNS 一般概览](https://cloud.google.com/dns/docs/dns-overview?hl=zh-cn)
+
+[系统调优，你所不知道的TIME_WAIT和CLOSE_WAIT](https://mp.weixin.qq.com/s/8WmASie_DjDDMQRdQi1FDg)
