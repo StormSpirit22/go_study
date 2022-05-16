@@ -36,7 +36,7 @@ Snowflake ID组成结构：`正数位`（占1比特）+ `时间戳`（占41比�
 
 ### 基于步长递增
 
-<img src="../../.go_study/assets/go_advanced/chat-3.png" alt="步长" style="zoom:50%;" />
+<img src="../../.go_study/assets/go_advanced/chat-3.png" alt="步长"  />
 
 基于步长递增的分布式 ID 生成器，可以生成基于递增，并且比较小的唯一 ID；
 
@@ -48,7 +48,7 @@ Snowflake ID组成结构：`正数位`（占1比特）+ `时间戳`（占41比�
 
 ### 基于数据库集群
 
-<img src="../../.go_study/assets/go_advanced/chat-4.png" alt="数据库集群" style="zoom:50%;" />
+<img src="../../.go_study/assets/go_advanced/chat-4.png" alt="数据库集群"  />
 
 基于数据库集群模式，在 MySQL 中的双主集群模式采用的是这个方案；
 
@@ -110,7 +110,7 @@ MySQL_2 配置：
 
 #### 服务类型
 
-<img src="../../.go_study/assets/go_advanced/chat-6.png" alt="服务类型" style="zoom:50%;" />
+<img src="../../.go_study/assets/go_advanced/chat-6.png" alt="服务类型"  />
 
 如上图，在聊天系统中，有着很多用户、消息功能，比如：
 
@@ -126,7 +126,7 @@ MySQL_2 配置：
 
 ### 模块功能
 
-<img src="../../.go_study/assets/go_advanced/chat-7.png" alt="模块功能" style="zoom:50%;" />
+<img src="../../.go_study/assets/go_advanced/chat-7.png" alt="模块功能"  />
 
 在聊天系统中，Goim 主要角色是 Real time service，实现对 **连接** 和 **状态** 的管理：
 
@@ -142,7 +142,7 @@ MySQL_2 配置：
 
 #### 消息发送流程
 
-<img src="../../.go_study/assets/go_advanced/chat-8.png" alt="消息发送" style="zoom:50%;" />
+<img src="../../.go_study/assets/go_advanced/chat-8.png" alt="消息发送"  />
 
 一对一聊天，主要的消息发送流程：
 
