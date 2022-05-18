@@ -53,4 +53,7 @@
     - [网络通信协议](go_advanced/week09/net_protocol.md)
     - [Goim 项目](go_advanced/week09/im_gateway.md)
     - [发号器& IM 私信系统设计](go_advanced/week09/chat.md)
+  - [第十周：日志&链路追踪&指标](go_advanced/week10/README.md)
+    - [日志](go_advanced/week10/log.md)
+    - [链路追踪](go_advanced/week10/trace.md)
 

@@ -4,6 +4,8 @@
 
 ### 源码浅析
 
+更多使用及原理可以直接参考官方文档 [日志](https://go-kratos.dev/docs/component/log) 。
+
 浅析一下 [kratos](https://github.com/go-kratos/kratos) 日志模块代码，里面 fmt... 的语句都是我加到里面调试用的。
 
 其中 Logger 接口是 kratos 定义的统一的日志接口入口，这个 logger 可以使用其他的第三方库的 log 来打印日志。比如下面的 stdLog，也就是官方 log 库，也可以使用比如 fluent 库，在 contrib/log/fluent/fluent.go 文件里。
@@ -242,7 +244,7 @@ func initApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*
 
 开源界鼎鼎大名 ELK stack，分别表示：Elasticsearch , Logstash, Kibana , 它们都是开源软件。新增了一个 FileBeat，它是一个轻量级的日志收集处理工具(Agent)，Filebeat 占用资源少，适合于在各个服务器上搜集日志后传输给 Logstash，官方也推荐此工具。
 
-![elk](/Users/tianyou/Library/Application Support/typora-user-images/image-20220517164737105.png)
+![elk](../../.go_study/assets/go_advanced/log-1.png)
 
 
 
@@ -255,7 +257,7 @@ JSON作为日志的输出格式：
 - app_id: 应用id，用于标示日志来源；
 - instance_id: 实例 id，用于区分同一应用不同实例，即 hostname；
 
-![样例格式](/Users/tianyou/Library/Application Support/typora-user-images/image-20220517165243389.png)
+![样例格式](../../.go_study/assets/go_advanced/log-2.png)
 
 
 
@@ -283,7 +285,7 @@ logagent（b 站自研）：
 
 基于 overlay2，直接从物理机上查找对应日志文件。
 
-![配置](/Users/tianyou/Library/Application Support/typora-user-images/image-20220517165641111.png)
+![配置](../../.go_study/assets/go_advanced/log-3.png)
 
 ### 传输
 
