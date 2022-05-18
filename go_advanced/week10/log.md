@@ -2,9 +2,9 @@
 
 ## Kratos Log
 
-### 源码浅析
-
 更多使用及原理可以直接参考官方文档 [日志](https://go-kratos.dev/docs/component/log) 。
+
+### 源码浅析
 
 浅析一下 [kratos](https://github.com/go-kratos/kratos) 日志模块代码，里面 fmt... 的语句都是我加到里面调试用的。
 
