@@ -304,3 +304,27 @@ logagent（b 站自研）：
 可监控：实时监控运行状态。
 
 完善的自我保护机制：限制自身对于宿主机资源的消耗，限制发送速度。
+
+
+
+## 参考
+
+[Let’s talk about logging](https://dave.cheney.net/2015/11/05/lets-talk-about-logging)
+
+[The package level logger anti pattern](https://dave.cheney.net/2017/01/23/the-package-level-logger-anti-pattern)
+
+[Logtail采集概述](https://help.aliyun.com/document_detail/28979.html?spm=a2c4g.11186623.2.10.3b0a729amtsBZe)
+
+[Logtail提升采集性能](https://developer.aliyun.com/article/703229)
+
+[Logtail技术分享(一) : Polling + Inotify 组合下的日志保序采集方案](https://developer.aliyun.com/article/204554)
+
+[ELK Stack](https://www.elastic.co/cn/what-is/elk-stack)
+
+[ELK (ElasticSearch, Logstash, Kibana) 搭建实时日志分析平台](https://my.oschina.net/itblog/blog/547250)
+
+[ELK原理与介绍 ](https://www.cnblogs.com/aresxin/p/8035137.html)
+
+[filebeat](https://www.elastic.co/cn/beats/filebeat)
+
+[Graylog 日志系统架构](https://blog.aliasmee.com/post/graylog-log-system-architecture/)
