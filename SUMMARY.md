@@ -58,3 +58,5 @@
     - [日志](go_advanced/week10/log.md)
     - [链路追踪](go_advanced/week10/trace.md)
     - [指标](go_advanced/week10/metric.md)
+  - [第十一周：DNS&CDN&多活架构](go_advanced/week11/README.md)
+    - [DNS&CDN](go_advanced/week11/dns_cdn.md)
