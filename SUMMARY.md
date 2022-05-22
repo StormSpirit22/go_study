@@ -7,7 +7,6 @@
 ## go 学习
 
 - [Go 底层原理](thy/README.md)
-  
   - [数组和切片](thy/data-structure/slice.md)
   - [集合](thy/data-structure/map.md)
   - [通道](thy/channel/channel.md)
@@ -16,7 +15,6 @@
   - [内存](thy/memory/memory.md)
   - [GC](thy/gc/gc.md)
   - [其他](thy/others/others.md)
-  
 - [Go 进阶训练营笔记](go_advanced/README.md)
   
   - [第一周：微服务](go_advanced/week01/README.md)
@@ -61,3 +59,11 @@
   - [第十一周：DNS&CDN&多活架构](go_advanced/week11/README.md)
     - [DNS&CDN](go_advanced/week11/dns_cdn.md)
     - [多活](go_advanced/week11/multi_activity.md)
+
+
+
+## 读书笔记
+
+- [《网络是怎样连接的》](reading-notes/network-how/README.md)
+  - [第一章：浏览器生成消息](reading-notes/network-how/chapter1.md)
+
