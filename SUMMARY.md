@@ -60,3 +60,4 @@
     - [指标](go_advanced/week10/metric.md)
   - [第十一周：DNS&CDN&多活架构](go_advanced/week11/README.md)
     - [DNS&CDN](go_advanced/week11/dns_cdn.md)
+    - [多活](go_advanced/week11/multi_activity.md)
