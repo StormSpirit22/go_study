@@ -254,6 +254,10 @@ commitSync() 引发的CommitFailedException）。这是一种安全机制，保�
 
 
 
+下节课讲的是 kafka 高可用，可以直接参考 [kafka高可靠性实现](https://stormspirit.gitbook.io/stormspirit/middleware/kafka/kafka-ji-chu#kafka-gao-ke-kao-xing-shi-xian) 。
+
+
+
 ## 参考
 
 [怎么理解 Kafka 消费者与消费组之间的关系?](https://segmentfault.com/a/1190000039125247)
