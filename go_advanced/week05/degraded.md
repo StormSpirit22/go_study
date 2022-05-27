@@ -36,7 +36,7 @@
 - 客户端解析协议失败，app 崩溃。（设置降级数据比如 nil、零值时需要跟客户端沟通好，避免出现客户端不认的字段导致出现异常或者是白屏。）
 
 - local cache 数据源缓存，发版失效 + 依赖接口故障，引起的白屏。（local cache 可能会失效，这时可以再存一份到 redis 中进行备份。）
-- 没有 playbook，导致的 MTTR 上升。（要有操作手册，SOP 即 Standard Operating Procedure，标准操作程序，减少故障发生时所需要的恢复的时间，即 MTTR。MTBF：平均无故障时间，即预测系统在下一次故障发生之前可以运行多长时间。）
+- 没有 playbook，导致的 MTTR 上升。（要有操作手册，SOP 即 Standard Operating Procedure，标准操作程序，减少故障发生时所需要的恢复的时间，即 MTTR。MTTF,  mean time to failure：平均无故障时间，即预测系统在下一次故障发生之前可以运行多长时间。）
 
 
 
