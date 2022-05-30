@@ -147,3 +147,62 @@ TCP 协议断开连接的四次挥手：
 
 上图的窗口就是滑动窗口大小。
 
+
+
+## 2.5 IP与以太网的包收发操作
+
+### 包的基本知识
+
+包是由头部和数据两部分构成的。
+
+![包的基本结构](/Users/tianyou/Library/Application Support/typora-user-images/image-20220527210554003.png)
+
+发送方、接收方和转发设备：
+
+![发送方、接收方和转发设备](/Users/tianyou/Library/Application Support/typora-user-images/image-20220527210639652.png)
+
+路由器与集线器，它们在传输网络包时有着各自的分工。
+
+（1）路由器根据目标地址判断下一个路由器的位置。
+
+（2）集线器在子网中将网络包传输到下一个路由。
+
+实际上，集线器是按照以太网规则传输包的设备，而路由器是按照IP规则传输包的设备，因此我们也可以作如下理解。
+
+（1）IP协议根据目标地址判断下一个IP转发设备的位置。
+
+（2）子网中的以太网协议将包传输到下一个转发设备。
+
+MAC 头部：以太网用的头部，包含MAC地址。 
+
+IP 头部：IP用的头部，包含IP地址。
+
+![IP网络包的传输过程](/Users/tianyou/Library/Application Support/typora-user-images/image-20220527211300954.png)
+
+
+
+![路由表示例](/Users/tianyou/Library/Application Support/typora-user-images/image-20220527212652936.png)
+
+IP模块根据**路由表**Gateway栏的内容判断应该把包发送给谁。
+
+### ARP协议查询MAC地址
+
+ARP就是利用广播对所有设备提问：“××这个IP地址是谁的？请把你的MAC地址告诉我。”然后就会有人回答：“这个IP地址是我的，我的MAC地址是××××。“
+
+![用ARP查询MAC地址](/Users/tianyou/Library/Application Support/typora-user-images/image-20220527212953382.png)
+
+ARP 也有缓存，保存 IP 地址与 MAC 地址的对应关系，不过一般只保存几分钟就会删掉，然后重新获取新的地址。
+
+### 以太网
+
+以太网的三个性质：
+
+- 将包发送到MAC头部的接收方MAC地址代表的目的地。
+- 用发送方MAC地址识别发送方。
+- 用以太类型识别包的内容。
+
+### 网卡
+
+网卡的ROM中保存着全世界唯一的MAC地址，这是在生产网卡时写入的。
+
+![网卡](/Users/tianyou/Library/Application Support/typora-user-images/image-20220527213425247.png)

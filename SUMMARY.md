@@ -68,5 +68,18 @@
 ## 读书笔记
 
 - [《网络是怎样连接的》](reading-notes/network-how/README.md)
+
   - [第一章：浏览器生成消息](reading-notes/network-how/chapter1.md)
+
+    
+
+- [《数据密集型应用系统设计》(DDIA)](reading-notes/ddia/README.md)
+
+  - [第一章：可靠、可扩展与可维护的应用系统](reading-notes/ddia/chapter1.md)
+  - [第二章：数据模型与查询语言](reading-notes/ddia/chapter2.md)
+  - [第三章：数据存储与检索](reading-notes/ddia/chapter3.md)
+  - [第四章：数据编码与演化](reading-notes/ddia/chapter4.md)
+  - [第五章：数据复制](reading-notes/ddia/chapter5.md)
+
+
 
