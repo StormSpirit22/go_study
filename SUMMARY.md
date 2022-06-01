@@ -80,6 +80,8 @@
   - [第三章：数据存储与检索](reading-notes/ddia/chapter3.md)
   - [第四章：数据编码与演化](reading-notes/ddia/chapter4.md)
   - [第五章：数据复制](reading-notes/ddia/chapter5.md)
+  - [第六章：数据分区](reading-notes/ddia/chapter6.md)
+  - [第七章：事务](reading-notes/ddia/chapter7.md)
 
 
 
