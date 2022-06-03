@@ -82,6 +82,7 @@
   - [第五章：数据复制](reading-notes/ddia/chapter5.md)
   - [第六章：数据分区](reading-notes/ddia/chapter6.md)
   - [第七章：事务](reading-notes/ddia/chapter7.md)
+  - [第八章：分布式系统的挑战](reading-notes/ddia/chapter8.md)
 
 
 
