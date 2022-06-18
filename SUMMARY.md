@@ -86,6 +86,7 @@
   - [第九章：一致性与共识](reading-notes/ddia/chapter9.md)
   - [第十章：批处理系统](reading-notes/ddia/chapter10.md)
   - [第十一章：流处理系统](reading-notes/ddia/chapter11.md)
+  - [第十二章：数据系统的未来](reading-notes/ddia/chapter12.md)
 
 
 
