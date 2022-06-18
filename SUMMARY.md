@@ -67,26 +67,36 @@
 
 ## 读书笔记
 
+- [《数据密集型应用系统设计》(DDIA)](reading-notes/ddia/README.md)
+
+  - [第一章：可靠、可扩展与可维护的应用系统](reading-notes/ddia/chapter1.md)
+
+  - [第二章：数据模型与查询语言](reading-notes/ddia/chapter2.md)
+
+  - [第三章：数据存储与检索](reading-notes/ddia/chapter3.md)
+
+  - [第四章：数据编码与演化](reading-notes/ddia/chapter4.md)
+
+  - [第五章：数据复制](reading-notes/ddia/chapter5.md)
+
+  - [第六章：数据分区](reading-notes/ddia/chapter6.md)
+
+  - [第七章：事务](reading-notes/ddia/chapter7.md)
+
+  - [第八章：分布式系统的挑战](reading-notes/ddia/chapter8.md)
+
+  - [第九章：一致性与共识](reading-notes/ddia/chapter9.md)
+
+  - [第十章：批处理系统](reading-notes/ddia/chapter10.md)
+
+  - [第十一章：流处理系统](reading-notes/ddia/chapter11.md)
+
+  - [第十二章：数据系统的未来](reading-notes/ddia/chapter12.md)
+
+    
+
 - [《网络是怎样连接的》](reading-notes/network-how/README.md)
 
   - [第一章：浏览器生成消息](reading-notes/network-how/chapter1.md)
 
     
-
-- [《数据密集型应用系统设计》(DDIA)](reading-notes/ddia/README.md)
-
-  - [第一章：可靠、可扩展与可维护的应用系统](reading-notes/ddia/chapter1.md)
-  - [第二章：数据模型与查询语言](reading-notes/ddia/chapter2.md)
-  - [第三章：数据存储与检索](reading-notes/ddia/chapter3.md)
-  - [第四章：数据编码与演化](reading-notes/ddia/chapter4.md)
-  - [第五章：数据复制](reading-notes/ddia/chapter5.md)
-  - [第六章：数据分区](reading-notes/ddia/chapter6.md)
-  - [第七章：事务](reading-notes/ddia/chapter7.md)
-  - [第八章：分布式系统的挑战](reading-notes/ddia/chapter8.md)
-  - [第九章：一致性与共识](reading-notes/ddia/chapter9.md)
-  - [第十章：批处理系统](reading-notes/ddia/chapter10.md)
-  - [第十一章：流处理系统](reading-notes/ddia/chapter11.md)
-  - [第十二章：数据系统的未来](reading-notes/ddia/chapter12.md)
-
-
-
