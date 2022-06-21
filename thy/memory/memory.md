@@ -69,7 +69,7 @@ Size_Class = Span_Class / 2
 
 Go1.9.2里 mspan 的Size Class共有67种，每种mspan分割的object大小是 8*2 的倍数，这个是写死在代码里的：
 
-```
+```go
 const _NumSizeClasses = 67
 
 var class_to_size = [_NumSizeClasses]uint16{0, 8, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 288, 320, 352, 384, 416, 448, 480, 512, 576, 640, 704, 768, 896, 1024, 1152, 1280, 1408, 1536,1792, 2048, 2304, 2688, 3072, 3200, 3456, 4096, 4864, 5376, 6144, 6528, 6784, 6912, 8192, 9472, 9728, 10240, 10880, 12288, 13568, 14336, 16384, 18432, 19072, 20480, 21760, 24576, 27264, 28672, 32768}
@@ -81,7 +81,7 @@ var class_to_size = [_NumSizeClasses]uint16{0, 8, 16, 32, 48, 64, 80, 96, 112, 1
 
 对于mspan来说，它的Size Class会决定它所能分到的页数，这也是写死在代码里的：
 
-```
+```go
 const _NumSizeClasses = 67
 
 var class_to_allocnpages = [_NumSizeClasses]uint8{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 1, 3, 2, 3, 1, 3, 2, 3, 4, 5, 6, 1, 7, 6, 5, 4, 3, 5, 7, 2, 9, 7, 5, 8, 3, 10, 7, 4}
@@ -93,7 +93,7 @@ var class_to_allocnpages = [_NumSizeClasses]uint8{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
 
 ### mspan 数据结构
 
-```
+```go
 type mspan struct {
     // 該 mspan 的 span class
 	spanclass   spanClass  // size class and noscan (uint8)
@@ -144,7 +144,7 @@ type mspan struct {
 
 从 mspan 中获取下一个空闲对象方法：
 
-```
+```go
 func (c *mcache) nextFree(spc spanClass) (v gclinkptr, s *mspan, shouldhelpgc bool) {
 	s = c.alloc[spc]
 	shouldhelpgc = false
@@ -185,7 +185,7 @@ func (s *mspan) base() uintptr {
 
 MHeap层次用于直接分配较大(>32kB)的内存空间，以及给MCentral和MCache等下层提供空间。它管理的基本单位是 MSpan。
 
-```
+```go
 type mheap struct {
     free      mTreap // free spans
     freelarge mTreap  // free treap of length >= _MaxMHeapList
@@ -232,7 +232,7 @@ mheap中含有所有规格的mcentral，所以，当一个mcache从mcentral申�
 
 treap 本身是一棵二叉搜索树，用来快速查找含有 npages 的 mspan 对象，但在其中一般会有一个额外字段来保证二叉搜索树的结构同时满足小顶堆的性质。treap 是利用随机 priority 来解决二叉搜索树不平衡的问题，同时也为了解决 AVL 树过于复杂的问题，类似的结构还有跳表。
 
-```
+```go
 //go:notinheap
 type mTreap struct {
 	treap           *treapNode
@@ -270,7 +270,7 @@ MCentral 层次是作为MCache和MHeap的连接。对上，它从MHeap中申请M
 
 mcentral被所有的工作线程共同享有，存在多个Goroutine竞争的情况，因此会消耗锁资源。结构体定义：
 
-```
+```go
 type mcentral struct {
 	lock      mutex
 	spanclass spanClass
@@ -294,7 +294,7 @@ MCache层次跟MHeap层次非常像，也是一个分配池，对每个尺寸的
 
 mcache与TCMalloc中的ThreadCache类似，mcache保存的是各种大小的Span，并按Span class分类，小对象直接从mcache分配内存，它起到了缓存的作用，并且可以无锁访问。但是mcache与ThreadCache也有不同点，TCMalloc中是每个线程1个ThreadCache，Go中是每个P拥有1个mcache。因为在Go程序中，当前最多有GOMAXPROCS个线程在运行，所以最多需要GOMAXPROCS个mcache就可以保证各线程对mcache的无锁访问，线程的运行又是与P绑定的，把mcache交给P刚刚好。
 
-```
+```go
 type mcache struct {
 	next_sample uintptr // trigger heap sample after allocating this many bytes
 	local_scan  uintptr // bytes of scannable heap allocated
@@ -326,7 +326,7 @@ sysAlloc 从操作系统获取一大块已清零的内存，一般是 100 KB 或
 sysAlloc 返回 OS 对齐的内存，但是对于堆分配器来说可能需要以更大的单位进行对齐。
 因此 caller 需要小心地将 sysAlloc 获取到的内存重新进行对齐。
 
-```
+```go
 func sysAlloc(n uintptr, sysStat *uint64) unsafe.Pointer {
 	p, err := mmap(nil, n, _PROT_READ|_PROT_WRITE, _MAP_ANON|_MAP_PRIVATE, -1, 0)
 	if err != 0 {
@@ -350,7 +350,7 @@ func sysAlloc(n uintptr, sysStat *uint64) unsafe.Pointer {
 
 sysUnused 通知操作系统内存区域的内容已经没用了，可以移作它用。
 
-```
+```go
 func sysUnused(v unsafe.Pointer, n uintptr) {
 	if physHugePageSize != 0 {
 		// If it's a large allocation, we want to leave huge
@@ -439,7 +439,7 @@ Linux 的透明大页支持会将 pages 合并到大页，常规的页分配的�
 
 sysUsed 通知操作系统内存区域的内容又需要用了。
 
-```
+```go
 func sysUsed(v unsafe.Pointer, n uintptr) {
 	sysHugePage(v, n)
 }
@@ -463,7 +463,7 @@ func sysHugePage(v unsafe.Pointer, n uintptr) {
 
 sysFree 无条件返回内存；只有当分配内存途中发生了 out-of-memory 错误时才会使用。
 
-```
+```go
 func sysFree(v unsafe.Pointer, n uintptr, sysStat *uint64) {
 	mSysStatDec(sysStat, n)
 	munmap(v, n)
@@ -477,7 +477,7 @@ sysReserve 会在不分配内存的情况下，保留一段地址空间。如果
 
 NOTE: sysReserve 返回 系统对齐的内存，没有按堆分配器的更大对齐单位进行对齐，所以 caller 需要将通过 sysAlloc 获取到的内存进行重对齐。
 
-```
+```go
 func sysReserve(v unsafe.Pointer, n uintptr) unsafe.Pointer {
 	p, err := mmap(v, n, _PROT_NONE, _MAP_ANON|_MAP_PRIVATE, -1, 0)
 	if err != 0 {
@@ -492,7 +492,7 @@ func sysReserve(v unsafe.Pointer, n uintptr) unsafe.Pointer {
 
 sysMap 将之前保留的地址空间映射好以进行使用。
 
-```
+```go
 func sysMap(v unsafe.Pointer, n uintptr, sysStat *uint64) {
 	mSysStatInc(sysStat, n)
 
@@ -520,7 +520,7 @@ func sysMap(v unsafe.Pointer, n uintptr, sysStat *uint64) {
 
 其中内存的初始化就在 schedinit 中：
 
-```
+```go
 func schedinit() {
 	...
 	
@@ -545,7 +545,7 @@ func schedinit() {
 
 ### mallocinit
 
-```
+```go
 func mallocinit() {
 	...
 	
@@ -599,7 +599,7 @@ func mallocinit() {
 
 `mheap_.init()` 函数主要是初始化 fixalloc 分配器，和初始化 central 属性：
 
-```
+```go
 func (h *mheap) init() {
 	h.treapalloc.init(unsafe.Sizeof(treapNode{}), nil, nil, &memstats.other_sys)
 	h.spanalloc.init(unsafe.Sizeof(mspan{}), recordspan, unsafe.Pointer(h), &memstats.mspan_sys)
@@ -623,7 +623,7 @@ func (h *mheap) init() {
 
 allocmcache() 用于给当前协程分配 mcache，但是 mcache 中并未分配任何 mspan，只是给了一个 dummy mspan
 
-```
+```go
 var emptymspan mspan
 
 func allocmcache() *mcache {
@@ -647,7 +647,7 @@ func allocmcache() *mcache {
 
 mcache 是个 per-P 结构，在程序启动时，会初始化化 p，并且分配对应的 mcache。
 
-```
+```go
 func procresize(nprocs int32) *p
 	...
 
@@ -703,7 +703,7 @@ func (pp *p) init(id int32) {
 
 ![img](../../.go_study/assets/memory/mem-10.png)
 
-```
+```go
 // new(type) 会被翻译为 newobject，但是也不一定，要看逃逸分析的结果
 // 编译前端和 SSA 后端都知道该函数的签名
 func newobject(typ *_type) unsafe.Pointer {
@@ -764,7 +764,7 @@ func mallocgc(size uintptr, typ *_type, needzero bool) unsafe.Pointer {
 然后从 cache 中获取对应的 sizeclass 的 mspan 对象。
 		
 	
-```		
+```		go
 		else {
 			var sizeclass uint8
 			if size <= smallSizeMax-8 {
@@ -795,7 +795,7 @@ freeindex 是 mspan 中已分配的对象个数，而 allocCache 是 freeindex �
 
 如果 allocCache 没有空闲对象，那么返回 0：
 
-```
+```go
 func nextFreeFast(s *mspan) gclinkptr {
 	theBit := sys.Ctz64(s.allocCache) // Is there a free object in the allocCache?
 	if theBit < 64 {
@@ -825,7 +825,7 @@ func (s *mspan) base() uintptr {
 该函数首先通过 nextFreeIndex 函数来获取下一个空闲的对象，如果当前 mspan 已满，那么通过 c.refill 重新获取 mspan：
 
 
-```
+```go
 func (c *mcache) nextFree(spc spanClass) (v gclinkptr, s *mspan, shouldhelpgc bool) {
 	s = c.alloc[spc]
 	shouldhelpgc = false
@@ -873,7 +873,7 @@ func (c *mcache) nextFree(spc spanClass) (v gclinkptr, s *mspan, shouldhelpgc bo
 
 因此，当 s.allocCache 已经满位 64 的时候，需要通过 s.refillAllocCache 函数从 allocBits 中获取对象的空闲状态，首先将 sfreeindex 取整到 64 倍数，然后将地址传给 allocBits，并填充 allocCache 的位数。
 
-```
+```go
 func (s *mspan) nextFreeIndex() uintptr {
 	sfreeindex := s.freeindex
 	snelems := s.nelems
@@ -939,7 +939,7 @@ func (s *mspan) refillAllocCache(whichByte uintptr) {
 
 该函数首先改变了 mspan 的 sweepgen，然后通过 cacheSpan 函数从 central 获取一个 mspan：
 
-```
+```go
 func (c *mcache) refill(spc spanClass) {
 	// Return the current cached span to the central lists.
 	s := c.alloc[spc]
@@ -988,7 +988,7 @@ mheap_.sweepgen 是 heap 的 gc 周期，每次 gc，其 sweepgen 会加 2，
 
 获取到 mspan 之后，需要更新 c.nmalloc， 重新计算 allocCache	
 
-```
+```go
 func (c *mcentral) cacheSpan() *mspan {
 	...
 	sg := mheap_.sweepgen
@@ -1081,7 +1081,7 @@ havespan:
 
 grow 函数主要计算 sizeclass 对应的 pages，然后向 mheap 申请 mspan：
 
-```
+```go
 func (c *mcentral) grow() *mspan {
 	npages := uintptr(class_to_allocnpages[c.spanclass.sizeclass()])
 	size := uintptr(class_to_size[c.spanclass.sizeclass()])
@@ -1107,7 +1107,7 @@ func (c *mcentral) grow() *mspan {
 
 拿到 mspan 之后，需要在对应的 arena 设置对应的 pageInUse 数组。
 
-```
+```go
 func (h *mheap) alloc(npage uintptr, spanclass spanClass, large bool, needzero bool) *mspan {
 	// Don't do any operations that lock the heap on the G stack.
 	// It might trigger stack growth, and the stack growth code needs
@@ -1188,7 +1188,7 @@ allocSpanLocked 先会去 free 中寻找适当的 mspan
 
 如果拿到的 page 过大，还需要进行拆分
 
-```
+```go
 func (h *mheap) allocSpanLocked(npage uintptr, stat *uint64) *mspan {
 	t := h.free.find(npage)
 	if t.valid() {
@@ -1280,7 +1280,7 @@ grow 函数对于新的 arena，初始化其 span 数组
 
 而在下面新建的 s 变量，也是以这个 size 大小作为其 mspan 的大小，这样当它插入到 h.free 中后，整个 arena 的内存就都在 free 这个 treap 树当中了。
 
-```
+```go
 func (h *mheap) grow(npage uintptr) bool {
 	ask := npage << _PageShift
 	v, size := h.sysAlloc(ask)
@@ -1320,7 +1320,7 @@ heapArenaBytes 在 linux 中就是 64M
 
 初始化 heapArena 各个参数，并更新 h.allArenas 数组
 
-```
+```go
 func (h *mheap) sysAlloc(n uintptr) (v unsafe.Pointer, size uintptr) {
 	n = round(n, heapArenaBytes)
 
@@ -1431,7 +1431,7 @@ mapped:
 
 对于大对象，直接调用 largeAlloc
 	
-```	
+```	go
 	else {
 		var s *mspan
 		shouldhelpgc = true
