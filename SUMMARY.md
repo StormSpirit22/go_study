@@ -62,6 +62,9 @@
   - [第十二周：消息队列-kafka](go_advanced/week12/README.md)
     - [Topic&Partition](go_advanced/week12/topic_partition.md)
     - [Producer&Consumer](go_advanced/week12/producer_consumer.md)
+  - [第十三周：Go语言实践-Runtime](go_advanced/week13/README.md)
+    - [内存分配原理](go_advanced/week13/memory.md)
+    - [GC原理](go_advanced/week13/gc.md)
 
 
 
