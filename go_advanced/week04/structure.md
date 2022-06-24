@@ -510,18 +510,41 @@ Wire 等依赖注入工具旨在简化初始化代码的管理，可以帮助完
 
 了解一下 wire 当中的两个概念：provider 和 injector。
 
-Provider 是一个普通的函数，这个函数会返回构建依赖关系所需的组件。如下所示，就是一个 provider 函数，在实际使用的时候，往往是一些简单的工厂函数，这个函数不会太复杂。
+Provider 实际上就是创建函数，这个函数会返回构建依赖关系所需的组件。如下所示，就是一个 provider 函数。
 
 ```go
-// NewPostRepo 创建文章 Repo
-func NewPostRepo() IPostRepo {}
+// NewArticleRepo .
+func NewArticleRepo(data *Data, logger log.Logger) biz.ArticleRepo {
+	return &articleRepo{
+		data: data,
+		log:  log.NewHelper(logger),
+	}
+}
+```
+
+实践中， 一组业务相关的provider时常被放在一起组织成 **ProviderSet**，以方便维护与切换。
+
+```go
+// ProviderSet is data providers.
+var ProviderSet = wire.NewSet(NewData, NewArticleRepo)
+```
+
+之后这个 ProviderSet 或 Provider 一般会在 wire.go 中被使用。
+
+```go
+// initApp init kratos application.
+func initApp(*conf.Server, *conf.Data, log.Logger) (*kratos.App, func(), error) {
+	panic(wire.Build(data.ProviderSet, service.ProviderSet, biz.ProviderSet, server.ProviderSet, newApp))
+}
 ```
 
 不过需要注意的是**在 wire 中不能存在两个 provider 返回相同的组件类型**。
 
 #### Injector
 
-injector 也是一个普通函数，我们常常在 `wire.go` 文件中定义 injector 函数签名，然后通过 `wire` 命令自动生成一个完整的函数
+injector 是由`wire`自动生成的函数。函数内部会按根据依赖顺序调用相关 privoder 。
+
+为了生成此函数， 我们在 `wire.go` (文件名非强制，但一般约定如此)文件中定义injector函数签名。 然后在函数体中调用`wire.Build` ，并以所需provider作为参数（无须考虑顺序）。
 
 ```go
 //+build wireinject
@@ -538,7 +561,9 @@ func GetBlogService() *Blog {
 
 更详细内容参考 
 
-[Go 每日一库之 wire](https://zhuanlan.zhihu.com/p/110453784) （通俗易懂）
+[Wire Tutorial](https://github.com/google/wire/blob/main/_tutorial/README.md)
+
+[Go 每日一库之 wire](https://zhuanlan.zhihu.com/p/110453784) 
 
 [一文读懂Wire](https://medium.com/@dche423/master-wire-cn-d57de86caa1b)
 
