@@ -107,7 +107,7 @@ kratos 限流源码更详细内容笔记可以直接查看 [Go可用性(五) 自
 
 ![image-20220410215009095](../../.go_study/assets/go_advanced/ratelimit-4.png)
 
-go-zero 使用 redis + lua 脚本实现的分布式限流：[periodlimit](https://go-zero.dev/cn/periodlimit.html)、[tokenlimit](https://go-zero.dev/cn/tokenlimit.html) 。
+go-zero 使用 redis + lua 脚本实现的分布式限流：[periodlimit](https://go-zero.dev/cn/docs/blog/governance/periodlimit/)、[tokenlimit](https://go-zero.dev/cn/docs/blog/governance/periodlimit/) 。
 
 #### 如何基于单个节点按需申请，并且避免出现不公平的现象？
 
