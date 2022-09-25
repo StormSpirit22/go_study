@@ -104,4 +104,6 @@
 
   - [第二章：用电信号传输 TCP/IP](reading-notes/network-how/chapter2.md)
   
-    
+- [《操作系统导论》](reading-notes/os/README.md)
+
+  - [第一部分](reading-notes/os/part1.md)
