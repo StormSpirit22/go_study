@@ -132,7 +132,7 @@ Kafka 正是利用**顺序 IO**，以及 **Page Cache** 达成的超高吞吐。
 
 #### 日志格式
 
-![日志格式](../../.go_study/assets/go_advanced/kafka-tp-4.png)
+<img src="../../.go_study/assets/go_advanced/kafka-tp-4.png" alt="日志格式" style="zoom:50%;" />
 
 各字段描述如下
 

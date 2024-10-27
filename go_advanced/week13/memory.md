@@ -65,7 +65,7 @@ go build -gcflags '-m'
 
 结果指示 tmp 逃逸到堆上了，getRandom 函数执行完成之后 tmp 变量也不会被回收，还会被继续引用。其中 //go:noinline 的意思是禁止内联，关于内联可以查看这篇文章：[Go 内联优化：如何让我们的程序更快？](https://mp.weixin.qq.com/s/fKxITKsBct9GLRYk4HLdKA)
 
-![image-20220621144237215](../../.go_study/assets/go_advanced/memory-1.png)
+<img src="../../.go_study/assets/go_advanced/memory-1.png" alt="image-20220621144237215" style="zoom:50%;" />
 
 Go 查找所有变量超过当前函数栈侦的，把它们分配到堆上，避免 outlive 变量。
 
@@ -156,7 +156,7 @@ TCMalloc 是 Thread Cache Malloc 的简称，是Go 内存管理的起源，Go的
 - sizeclass: 空间规格，每个 span 都带有一个 sizeclass，标记着该 span 中的 page 应该如何使用。
 - object: 对象，用来存储一个变量数据内存空间，一个 span 在初始化时，会被切割成一堆等大的 object。假设 object 的大小是 16B，span 大小是 8K，那么就会把 span 中的 page 就会被初始化 8K / 16B = 512 个 object。
 
-![image-20220621150222421](../../.go_study/assets/go_advanced/memory-7.png)
+<img src="../../.go_study/assets/go_advanced/memory-7.png" alt="image-20220621150222421" style="zoom:50%;" />
 
 ### **小于** **32kb** 内存分配
 
@@ -164,13 +164,13 @@ TCMalloc 是 Thread Cache Malloc 的简称，是Go 内存管理的起源，Go的
 
 在 Go 的调度器模型里，每个线程  M 会绑定给一个处理器 P，在单一粒度的时间里只能做多处理运行一个 goroutine，**每个 P 都会绑定一个上面说的本地缓存 mcache**。当需要进行内存分配时，当前运行的 goroutine 会从 mcache 中查找可用的 mspan。从本地 mcache 里分配内存时不需要加锁，这种分配策略效率更高。
 
-![image-20220621151242481](../../.go_study/assets/go_advanced/memory-8.png)
+<img src="../../.go_study/assets/go_advanced/memory-8.png" alt="image-20220621151242481" style="zoom:50%;" />
 
 申请内存时都分给他们一个 mspan 这样的单元会不会产生浪费。其实 mcache 持有的这一系列的 mspan 并不都是统一大小的，而是按照大小，分了大概 67*2 类的 mspan。为什么有一个两倍的关系？为了加速之后内存回收的速度，数组里一半的 mspan 中分配的对象不包含指针，另一半则包含指针。对于无指针对象的 mspan 在进行垃圾回收的时候无需进一步扫描它是否引用了其他活跃的对象。
 
 每个内存页分为多级固定大小的“空闲列表”，这有助于减少碎片。类似的思路在 Linux Kernel、Memcache 都可以见到 Slab-Allactor。
 
-![image-20220621151415226](../../.go_study/assets/go_advanced/memory-9.png)
+<img src="../../.go_study/assets/go_advanced/memory-9.png" alt="image-20220621151415226" style="zoom:50%;" />
 
 如果分配内存时 mcachce 里没有空闲的对口 sizeclass 的 mspan 了，Go 里还为每种类别的 mspan 维护着一个 **mcentral**。
 
@@ -178,11 +178,11 @@ mcentral 的作用是为所有 mcache 提供切分好的 mspan 资源。每个 c
 
 mcentral 被所有的工作线程共同享有，存在多个 goroutine 竞争的情况，因此从 mcentral 获取资源时需要加锁。mcentral 里维护着两个双向链表，nonempty 表示链表里还有空闲的 mspan 待分配。empty 表示这条链表里的 mspan 都被分配了object 或缓存 mcache 中。
 
-![image-20220621151458286](../../.go_study/assets/go_advanced/memory-10.png)
+<img src="../../.go_study/assets/go_advanced/memory-10.png" alt="image-20220621151458286" style="zoom:33%;" />
 
 程序申请内存的时候，mcache 里已经没有合适的空闲 mspan了，那么工作线程就会像下图这样去 mcentral 里去申请。
 
-![image-20220621151546493](../../.go_study/assets/go_advanced/memory-11.png)
+<img src="../../.go_study/assets/go_advanced/memory-11.png" alt="image-20220621151546493" style="zoom:33%;" />
 
 mcache 从 mcentral 获取和归还 mspan 的流程：
 
@@ -225,7 +225,7 @@ type mheap struct {
 
 所有 mcentral 的集合则是存放于 mheap 中的。 mheap 里的 arena 区域是真正的堆区，运行时会将 8KB 看做一页，这些内存页中存储了所有在堆上初始化的对象。运行时使用二维的 runtime.heapArena 数组管理所有的内存，每个 runtime.heapArena 都会管理 64MB 的内存。
 
-![image-20220621152000249](../../.go_study/assets/go_advanced/memory-13.png)
+<img src="../../.go_study/assets/go_advanced/memory-13.png" alt="image-20220621152000249" style="zoom:33%;" />
 
 ### **小于** 16 字节内存分配
 
@@ -236,7 +236,7 @@ type mheap struct {
 
 tiny 分配的第一步是尝试利用分配过的前一个元素的空间，达到节约内存的目的。
 
-![image-20220621152502518](../../.go_study/assets/go_advanced/memory-14.png)
+<img src="../../.go_study/assets/go_advanced/memory-14.png" alt="image-20220621152502518" style="zoom: 33%;" />
 
 ### 大于 32kb 内存分配
 
